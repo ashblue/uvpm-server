@@ -1,0 +1,24 @@
+{
+  "name": "uv-package-manager",
+  "version": "1.0.0",
+  "description": "A package manager for Unity3D. The back-end server portion of the software.",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashblue/uv-package-manager.git"
+  },
+  "author": "Ash Blue",
+  "bugs": {
+    "url": "https://github.com/ashblue/uv-package-manager/issues"
+  },
+  "homepage": "https://github.com/ashblue/uv-package-manager#readme",
+  "devDependencies": {
+    "ts-loader": "^3.2.0",
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0"
+  }
+}
