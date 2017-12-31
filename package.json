@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run watch",
-    "watch": "webpack --progress --colors --watch",
+    "watch": "node watch-shim.js && npm-run-all --parallel watch:server watch:build",
+    "watch:build": "webpack --progress --colors --watch",
+    "watch:server": "nodemon \"./dist/bundle.js\" --watch \"./dist/*\"",
+    "serve": "build && nodemon \"./dist/bundle.js\"",
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,6 +22,8 @@
   },
   "homepage": "https://github.com/ashblue/uv-package-manager#readme",
   "devDependencies": {
+    "nodemon": "^1.14.7",
+    "npm-run-all": "^4.1.2",
     "ts-loader": "^3.2.0",
     "tslint": "^5.8.0",
     "tslint-loader": "^3.5.3",
