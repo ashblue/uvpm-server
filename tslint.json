@@ -1,0 +1,22 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "rules": {
+    "no-console": false,
+    "space-before-function-paren": true,
+    "no-var-requires": false,
+    "quotemark": [
+      true,
+      "single"
+    ],
+    "max-line-length": [
+      false
+    ],
+    "object-literal-sort-keys": false,
+    "no-shadowed-variable": false,
+    "no-string-literal": false,
+    "ordered-imports": false
+  }
+}

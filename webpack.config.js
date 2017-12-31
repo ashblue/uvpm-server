@@ -6,6 +6,11 @@ const config = {
     module: {
         rules: [
             {
+                test: /\.ts$/,
+                enforce: 'pre',
+                loader: 'tslint-loader'
+            },
+            {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/
