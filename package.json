@@ -4,6 +4,8 @@
   "description": "A package manager for Unity3D. The back-end server portion of the software.",
   "main": "index.js",
   "scripts": {
+    "start": "npm run watch",
+    "watch": "webpack --progress --colors --watch",
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
