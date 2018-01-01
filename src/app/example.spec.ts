@@ -1,5 +1,6 @@
 import { Example } from './example';
 import fs = require('fs');
+import assert = require('assert');
 
 describe('Example', () => {
   it('should add 2 + 2', () => {
@@ -7,7 +8,7 @@ describe('Example', () => {
     const num2 = 2;
     const ex = new Example();
 
-    expect(ex.getSum(num1, num2)).toEqual(num1 + num2);
+    assert.equal(ex.getSum(num1, num2), num1 + num2);
   });
 
   it('should create folder', () => {
