@@ -6,7 +6,7 @@ const config = {
     module: {
         rules: [
             {
-                test: /\.ts$/,
+                test: /\.tsx?$/,
                 enforce: 'pre',
                 loader: 'tslint-loader'
             },

@@ -10,7 +10,8 @@
     "watch:server": "nodemon \"./dist/bundle.js\" --watch \"./dist/*\"",
     "serve": "build && nodemon \"./dist/bundle.js\"",
     "build": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "karma start",
+    "test:single": "karma start --single-run"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,13 @@
   },
   "homepage": "https://github.com/ashblue/uv-package-manager#readme",
   "devDependencies": {
+    "jasmine-core": "^2.8.0",
+    "karma": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-cli": "^1.0.1",
+    "karma-jasmine": "^1.1.1",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-webpack": "^2.0.9",
     "nodemon": "^1.14.7",
     "npm-run-all": "^4.1.2",
     "ts-loader": "^3.2.0",
@@ -29,5 +37,8 @@
     "tslint-loader": "^3.5.3",
     "typescript": "^2.6.2",
     "webpack": "^3.10.0"
+  },
+  "dependencies": {
+    "@types/jasmine": "^2.8.3"
   }
 }
