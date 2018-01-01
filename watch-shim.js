@@ -4,6 +4,12 @@
 var fs = require('fs');
 
 if (!fs.existsSync('./dist')) {
-    fs.mkdir('./dist');
-    fs.writeFileSync('./dist/bundle.js', '');
+  fs.mkdirSync('./dist');
 }
+
+// Delete the old bundle code so the file system picks up on a change before writing
+if (fs.existsSync('./dist/bundle.js')) {
+  fs.unlinkSync('./dist/bundle.js');
+}
+
+fs.writeFileSync('./dist/bundle.js', '');

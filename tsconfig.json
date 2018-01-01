@@ -15,14 +15,12 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": false,
-
-    "paths": {
-      "*": [
-        "node_modules/*"
-      ]
-    }
   },
   "include": [
     "src/**/*"
+  ],
+
+  "exclude": [
+    "./node_modules"
   ]
 }
