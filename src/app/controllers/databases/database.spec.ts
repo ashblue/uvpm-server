@@ -9,11 +9,11 @@ describe('Database', () => {
   let db: Database;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, done);
+    db = new Database(appConfig.DB_DEFAULT_URL, () => done());
   });
 
   afterEach((done) => {
-    db.closeConnection(done);
+    db.closeConnection(() => done());
   });
 
   it('should store the default database url in a config file', () => {

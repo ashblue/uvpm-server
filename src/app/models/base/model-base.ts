@@ -15,6 +15,7 @@ export abstract class ModelBase {
           delete ret.__v;
 
           ret.id = id;
+
           return ret;
         },
       },

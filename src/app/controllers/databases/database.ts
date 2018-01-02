@@ -4,7 +4,7 @@ export class Database {
   public readonly connection: mongoose.Connection;
   public readonly url: string;
 
-  constructor (url: string, done?: () => void) {
+  constructor (url: string, done?: (db: Database) => void) {
     this.url = url;
 
     this.connection = mongoose.createConnection(this.url);
@@ -12,7 +12,7 @@ export class Database {
       this.createLogs();
 
       if (done != null) {
-        done();
+        done(this);
       }
     });
   }

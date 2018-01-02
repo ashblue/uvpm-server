@@ -17,10 +17,8 @@ describe('ModelBase', () => {
   let ModelStub: mongoose.Model<mongoose.Document>;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, () => {
-      // @TODO Extend Typescript definition to include `mongoose.models: Model<Document>[]`
-      ModelStub = mongoose['models'].Stub || mongoose.model('Stub', new ModelStubInternal().schema);
-
+    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+      ModelStub = dbRef.connection.model('Stub', new ModelStubInternal().schema);
       done();
     });
   });
