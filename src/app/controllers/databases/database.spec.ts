@@ -12,6 +12,10 @@ describe('Database', () => {
     db = new Database(appConfig.DB_DEFAULT_URL, done);
   });
 
+  afterEach((done) => {
+    db.closeConnection(done);
+  });
+
   it('should store the default database url in a config file', () => {
     appConfig.should.have.property('DB_DEFAULT_URL');
   });

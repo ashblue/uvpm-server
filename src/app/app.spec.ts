@@ -1,19 +1,16 @@
 import { App } from './app';
 import * as assert from 'assert';
-import * as mongoose from 'mongoose';
 
 describe('App', () => {
   let app: App;
 
-  before((done) => {
+  beforeEach((done) => {
     app = new App();
+    app.db.connection.once('open', done);
+  });
 
-    // Make sure MongoDB has established a connection (otherwise shim it)
-    if (mongoose.connection.db) {
-      return done();
-    }
-
-    mongoose.connection.on('open', done);
+  afterEach((done) => {
+    app.db.closeConnection(done);
   });
 
   it('should create a public express object', () => {

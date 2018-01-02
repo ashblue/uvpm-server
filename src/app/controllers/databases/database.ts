@@ -1,25 +1,24 @@
 import * as mongoose from 'mongoose';
 
 export class Database {
+  public readonly connection: mongoose.Connection;
   public readonly url: string;
 
   constructor (url: string, done?: () => void) {
     this.url = url;
 
-    // Do not connect if a connection is already present
-    // Prevents tests from starting multiple database instance connections
-    if (!mongoose.connection.db) {
-      mongoose.connect(this.url);
+    this.connection = mongoose.createConnection(this.url);
+    this.connection.once('open', () => {
       this.createLogs();
 
-      mongoose.connection.on('open', () => {
-        if (done != null) {
-          done();
-        }
-      });
-    } else if (done != null) {
-      done();
-    }
+      if (done != null) {
+        done();
+      }
+    });
+  }
+
+  public closeConnection (done: () => void) {
+    this.connection.close(done);
   }
 
   private createLogs () {
