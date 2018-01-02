@@ -1,8 +1,11 @@
 import * as express from 'express';
 import * as http from 'http';
 import bodyParser = require('body-parser');
+import { Database } from './controllers/databases/database';
+import { appConfig } from './helpers/app-config';
 
 export class App {
+  public db: Database;
   public express: express.Application;
   public port: number;
   public server: http.Server;
@@ -14,6 +17,9 @@ export class App {
     if (logs) {
       this.express.use(this.logRequest);
     }
+
+    // @TODO Should eat an overridable environmental variable if set (include test)
+    this.db = new Database(appConfig.DB_DEFAULT_URL);
   }
 
   public createServer (port: number) {

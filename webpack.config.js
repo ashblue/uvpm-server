@@ -1,9 +1,15 @@
 const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 const config = {
   entry: './src/index.ts',
   devtool: 'inline-source-map',
   target: 'node',
+
+  externals: [
+    nodeExternals()
+  ],
+
   module: {
     rules: [
       {
@@ -18,6 +24,7 @@ const config = {
       }
     ]
   },
+
   resolve: {
     extensions: [
       '.tsx',
@@ -25,6 +32,7 @@ const config = {
       '.js'
     ]
   },
+
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist')
