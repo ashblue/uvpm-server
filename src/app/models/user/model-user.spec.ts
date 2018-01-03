@@ -5,15 +5,20 @@ import {IModelUser, ModelUserSchema} from './model-user';
 
 import * as chai from 'chai';
 chai.should();
+const expect = chai.expect;
 
 describe('ModelBase', () => {
+  const validPassword = 'asdfasd1';
+
   let db: Database;
   let ModelUser: mongoose.Model<IModelUser>;
 
   beforeEach((done) => {
     db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
-      ModelUser = dbRef.connection.model('user', new ModelUserSchema().schema);
-      done();
+      dbRef.connection.db.dropDatabase().then(() => {
+        ModelUser = dbRef.connection.model('user', new ModelUserSchema().schema);
+        done();
+      });
     });
   });
 
@@ -21,8 +26,22 @@ describe('ModelBase', () => {
     db.closeConnection(done);
   });
 
-  xit('should insert a new valid user', () => {
-    console.log('placeholder');
+  it('should insert a new valid user', (done) => {
+    const user = new ModelUser({
+      name: 'asdf asdf',
+      email: 'asdf@asdf.com',
+      password: validPassword,
+    });
+
+    user.save((err, record) => {
+      expect(err).to.be.null;
+
+      ModelUser.findById(record.id, (err, record) => {
+        expect(err).to.be.null;
+        expect(record).to.be.ok;
+        done();
+      });
+    });
   });
 
   describe('definition property', () => {
@@ -31,10 +50,16 @@ describe('ModelBase', () => {
         const m = new ModelUser({
           name: 'asdf asdf',
           email: 'asdf@asdf.com',
-          password: 'asdfasdf',
+          password: validPassword,
         });
 
         m.save((err, entry) => {
+          if (err) {
+            console.log(err);
+          }
+
+          expect(err).to.be.null;
+
           entry.createdAt = new Date(0);
           entry.save((err, entry) => {
             err.toString().should.contain('createdAt cannot be modified');
@@ -47,7 +72,7 @@ describe('ModelBase', () => {
         const m = new ModelUser({
           name: 'asdf asdf',
           email: 'asdf@asdf.com',
-          password: 'asdfasdf',
+          password: validPassword,
         });
 
         m.createdAt.should.not.be.undefined;
@@ -58,49 +83,137 @@ describe('ModelBase', () => {
       it('should not validate without a name', (done) => {
         const m = new ModelUser({
           email: 'asdf@asdf.com',
-          password: 'asdfasdf',
+          password: validPassword,
         });
 
         m.validate((err) => {
-          if (err) {
-            done();
-          } else {
-            throw new Error('Should not have validated');
-          }
+          expect(err.errors.name).to.not.be.undefined;
+          done();
         });
       });
     });
 
     describe('email', () => {
-      xit('should not validate without an email', () => {
-        console.log('placeholder');
+      it('should not validate without an email', () => {
+        it('should not validate without a name', (done) => {
+          const m = new ModelUser({
+            name: 'asdf',
+            password: validPassword,
+          });
+
+          m.validate((err) => {
+            expect(err.errors.email).to.not.be.undefined;
+            done();
+          });
+        });
       });
 
-      xit('should not validate an invalid email', () => {
-        console.log('placeholder');
+      it('should not validate an invalid email', (done) => {
+        const m = new ModelUser({
+          name: 'asdf',
+          password: validPassword,
+          email: 'asdf',
+        });
+
+        m.validate((err) => {
+          expect(err.errors.email).to.not.be.undefined;
+          done();
+        });
       });
 
-      xit('should not allow duplicate emails', () => {
-        // Possible answer
-        // https://stackoverflow.com/questions/43962430/mongoose-how-to-prevent-mongodb-to-save-duplicate-email-records-in-database
+      it('should validate a valid email', (done) => {
+        const m = new ModelUser({
+          name: 'asdf',
+          password: validPassword,
+          email: 'asdf@asdf.com',
+        });
+
+        m.validate((err) => {
+          expect(err).to.be.null;
+          done();
+        });
+      });
+
+      it('should not allow duplicate emails', (done) => {
+        const user1 = new ModelUser({
+          name: 'asdf',
+          password: validPassword,
+          email: 'asdf@asdf.com',
+        });
+
+        const user2 = new ModelUser({
+          name: 'asdf',
+          password: validPassword,
+          email: 'asdf@asdf.com',
+        });
+
+        user1.save((err) => {
+          expect(err).to.be.null;
+
+          user2.save((err) => {
+            expect(err).to.not.be.undefined;
+            expect(err.errmsg).to.contain('duplicate key error');
+
+            done();
+          });
+        });
       });
     });
 
     describe('password', () => {
-      xit('should require a password', () => {
-        console.log('placeholder');
+      it('should require a password', (done) => {
+        const user = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+        });
+
+        user.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.password.message).to.contain('require');
+          done();
+        });
       });
 
-      xit('should require the password to be 8 characters', () => {
-        console.log('placeholder');
+      it('should require the password to have 8 characters', (done) => {
+        const user = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: 'asdfasd',
+        });
+
+        user.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.password.message).to.contain('must be at least 8 characters');
+          done();
+        });
       });
 
-      xit('should require the password to have at least one letter', () => {
-        console.log('placeholder');
+      it('should require the password to have at least one letter', (done) => {
+        const user = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: '12341234',
+        });
+
+        user.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.password.message).to.contain('Must have at least one letter');
+          done();
+        });
       });
 
-      xit('should require the password to have at least one number', () => {
-        console.log('placeholder');
+      it('should require the password to have at least one number', (done) => {
+        const user = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: 'asdfasdf',
+        });
+
+        user.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.password.message).to.contain('Must have at least one number');
+          done();
+        });
       });
     });
 
@@ -118,7 +231,7 @@ describe('ModelBase', () => {
       modelStub = new ModelUser({
         name: 'Lorem Ipsum',
         email: 'asdf@asdf.com',
-        password: 'asdfasdf',
+        password: validPassword,
       });
     });
 

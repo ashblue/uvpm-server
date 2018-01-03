@@ -55,6 +55,26 @@ export class ModelUserSchema extends ModelBase {
         type: String,
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters'],
+        validate: [
+          {
+            message: 'Must have at least one letter',
+            validator: (password) => {
+              return new Promise((resolve, reject) => {
+                const regex = /[a-z]/i;
+                resolve(regex.test(password));
+              });
+            },
+          },
+          {
+            message: 'Must have at least one number',
+            validator: (password) => {
+              return new Promise((resolve, reject) => {
+                const regex = /\d+/g;
+                resolve(regex.test(password));
+              });
+            },
+          },
+        ],
       },
     };
   }
