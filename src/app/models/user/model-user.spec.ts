@@ -218,8 +218,23 @@ describe('ModelBase', () => {
     });
 
     describe('id', () => {
-      xit('should not allow the ID to be updated', () => {
-        console.log('hit');
+      it('should not allow the ID to be updated', (done) => {
+        const user = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: validPassword,
+        });
+
+        user.save((err, user) => {
+          expect(err).to.not.be.ok;
+          expect(user).to.be.ok;
+
+          user._id = 'asdf';
+          user.save((err, user) => {
+            expect(err).to.be.ok;
+            done();
+          });
+        });
       });
     });
   });
