@@ -25,6 +25,10 @@ describe('Database', () => {
   });
 
   it('should run MongoDB on creation', () => {
-    expect(db).to.not.be.a('undefined');
+    expect(db).to.be.ok;
+  });
+
+  it('should populate the database collection on calling models', () => {
+    expect(db.models).to.be.ok;
   });
 });
