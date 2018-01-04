@@ -2,6 +2,7 @@ import * as express from 'express';
 import {Database} from '../databases/database';
 import {appConfig} from '../../helpers/app-config';
 import {CtrlUser} from './ctrl-user';
+import passport = require('passport');
 
 import request = require('supertest');
 import bodyParser = require('body-parser');
@@ -44,6 +45,7 @@ describe('CtrlUser', () => {
       ctrl = new CtrlUser(db);
       app = express();
       app.use(bodyParser.json());
+      app.use(passport.initialize());
 
       app.post('/users', (req, res) => {
         ctrl.register(req, res);
@@ -106,7 +108,7 @@ describe('CtrlUser', () => {
           });
       });
 
-      it('should fail if password is incorrect', () => {
+      it('should fail if password is incorrect', (done) => {
         request(app)
           .post('/users/login')
           .send({
@@ -118,10 +120,11 @@ describe('CtrlUser', () => {
           .end((err, res) => {
             expect(err).to.not.be.ok;
             expect(res.body.message).to.contain('Invalid login credentials');
+            done();
           });
       });
 
-      it('should fail if email is incorrect', () => {
+      it('should fail if email is incorrect', (done) => {
         request(app)
           .post('/users/login')
           .send({
@@ -133,10 +136,11 @@ describe('CtrlUser', () => {
           .end((err, res) => {
             expect(err).to.not.be.ok;
             expect(res.body.message).to.contain('Invalid login credentials');
+            done();
           });
       });
 
-      it('should validate login if already registered', () => {
+      it('should validate login if already registered', (done) => {
         request(app)
           .post('/users/login')
           .send(userData)
@@ -144,10 +148,11 @@ describe('CtrlUser', () => {
           .expect(200)
           .end((err, res) => {
             expect(err).to.not.be.ok;
+            done();
           });
       });
 
-      it('should return a token upon success', () => {
+      it('should return a token upon success', (done) => {
         request(app)
           .post('/users/login')
           .send(userData)
@@ -156,10 +161,11 @@ describe('CtrlUser', () => {
           .end((err, res) => {
             expect(err).to.not.be.ok;
             expect(res.body.token).to.be.ok;
+            done();
           });
       });
 
-      it('should return a user upon success', () => {
+      it('should return a user upon success', (done) => {
         request(app)
           .post('/users/login')
           .send(userData)
@@ -168,19 +174,18 @@ describe('CtrlUser', () => {
           .end((err, res) => {
             expect(err).to.not.be.ok;
             expect(res.body.user).to.be.ok;
+            done();
           });
       });
     });
 
     describe('authenticate', () => {
       beforeEach((done) => {
-        app.get('/users/auth', ctrl.authenticate(),
-          (req, res) => {
-            res.json({message: 'success'});
-          },
-          (req, res) => {
-            res.json({message: 'failure'});
+        app.get('/users/auth', (req, res, next) => {
+          ctrl.authenticate(req, res, next, () => {
+            res.send({message: 'success'});
           });
+        });
 
         request(app)
           .post('/users')
@@ -191,14 +196,14 @@ describe('CtrlUser', () => {
           });
       });
 
-      it('should return empty if provided JWT token is invalid', (done) => {
+      it('should return error message if provided JWT token is invalid', (done) => {
         request(app)
           .get('/users/auth')
           .set('Authorization', 'Bearer asdf')
           .expect(401)
           .end((err, res) => {
             expect(err).to.not.be.ok;
-            expect(res.body).to.be.ok;
+            expect(res.body.message).to.contain('Authentication failed');
             done();
           });
       });

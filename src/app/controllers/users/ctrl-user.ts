@@ -71,8 +71,21 @@ export class CtrlUser {
     });
   }
 
-  public authenticate () {
-    return passport.authenticate('jwt', userConfig.jwtSession);
+  public authenticate (req: express.Request, res: express.Response, next: express.NextFunction, success: () => void) {
+    passport.authenticate('jwt', userConfig.jwtSession, (err, user, info) => {
+      if (err) {
+        return next(err); // will generate a 500 error
+      }
+      // Generate a JSON response reflecting authentication status
+      if (!user) {
+        return res.status(401)
+          .send({
+            message: 'Authentication failed',
+          });
+      }
+
+      success();
+    })(req, res, next);
   }
 
   public update (req: express.Request, res: express.Response) {
