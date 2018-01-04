@@ -1,7 +1,7 @@
 import * as express from 'express';
 import {userConfig} from './user-config';
 
-// import jwt = require('jwt-simple');
+import jwt = require('jwt-simple');
 import passport = require('passport');
 import passportJWT = require('passport-jwt');
 import {Database} from '../databases/database';
@@ -43,5 +43,40 @@ export class CtrlUser {
 
       res.json(user);
     });
+  }
+
+  public login (req: express.Request, res: express.Response) {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const user = this.db.models.User;
+    user.findOne({email, password}, (err, user) => {
+      if (err) {
+        res.status(401).json(err);
+        return;
+      }
+
+      if (!user) {
+        res.status(401).json({
+          message: 'Invalid login credentials',
+        });
+        return;
+      }
+
+      const token = jwt.encode({id: user.id}, userConfig.jwtSecret);
+      res.json({
+        token,
+        user,
+      });
+    });
+  }
+
+  public authenticate () {
+    return passport.authenticate('jwt', userConfig.jwtSession);
+  }
+
+  public update (req: express.Request, res: express.Response) {
+    // Handle bulk details update
+    // Handle password with confirm field
   }
 }
