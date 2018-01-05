@@ -1,7 +1,8 @@
 import * as mongoose from 'mongoose';
 import {Database} from '../../controllers/databases/database';
 import {appConfig} from '../../helpers/app-config';
-import {IModelUser, ModelUserSchema} from './model-user';
+import {ModelUserSchema} from './model-user';
+import {IModelUser} from './i-model-user';
 
 import * as chai from 'chai';
 chai.should();
@@ -89,6 +90,26 @@ describe('ModelBase', () => {
         m.validate((err) => {
           expect(err.errors.name).to.not.be.undefined;
           done();
+        });
+      });
+
+      it('should let the user change the name', (done) => {
+        const m = new ModelUser({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: validPassword,
+        });
+
+        m.save((err, result: IModelUser) => {
+          const name = result.name;
+          ModelUser.findByIdAndUpdate(m.id, {$set: {name: 'fdsa'}}, {new: true}, (err, result) => {
+            expect(result).to.be.ok;
+            if (result) {
+              expect(result.name).to.not.equal(name);
+            }
+
+            done();
+          });
         });
       });
     });

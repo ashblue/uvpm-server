@@ -8,7 +8,7 @@ import request = require('supertest');
 import bodyParser = require('body-parser');
 
 import * as chai from 'chai';
-import {IModelUser} from '../../models/user/model-user';
+import {IModelUser} from '../../models/user/i-model-user';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
@@ -329,17 +329,17 @@ describe('CtrlUser', () => {
       });
 
       describe('name', () => {
-        xit('should let a user change their name', (done) => {
+        it('should let a user change their name', (done) => {
           request(app)
             .put(`/users/${user.id}`)
             .set('Authorization', token)
             .send({
-              name: 'fdsa dsdfsddd',
+              name: 'fdsa',
             })
             .expect(200)
             .end((err, res) => {
               expect(err).to.not.be.ok;
-              expect(res.body.name).to.contain('fdsa dsdfsddd');
+              expect(res.body.name).to.contain('fdsa');
               done();
             });
         });

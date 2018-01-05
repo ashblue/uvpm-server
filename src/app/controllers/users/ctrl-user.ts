@@ -5,6 +5,7 @@ import jwt = require('jwt-simple');
 import passport = require('passport');
 import passportJWT = require('passport-jwt');
 import {Database} from '../databases/database';
+import {IExpressRequest} from '../../helpers/interfaces/i-express-request';
 
 export class CtrlUser {
   constructor (private db: Database) {
@@ -90,27 +91,31 @@ export class CtrlUser {
     })(req, res, next);
   }
 
-  public update (req: express.Request, res: express.Response) {
+  public update (req: IExpressRequest, res: express.Response) {
     const queryId = req.params.userId;
-    const userId = req['user']._id;
 
-    if (userId.toString() !== queryId) {
+    if (!req.user || req.user.id.toString() !== queryId) {
       res.status(401).json({
         message: 'Access denied',
       });
+
       return;
     }
 
-    this.db.models.User.findByIdAndUpdate(queryId, {$set: req.body}, {runValidators: true}, (err, record) => {
-      if (err) {
-        res.status(404).json(err);
-        return;
-      }
+    this.db.models.User.findByIdAndUpdate(queryId,
+      {$set: req.body},
+      {
+        runValidators: true,
+        new: true,
+      },
+      (err, record) => {
+        if (err) {
+          res.status(404).json(err);
+          return;
+        }
 
-      console.log(record);
-
-      res.json(record);
-    });
+        res.json(record);
+      });
 
     // Handle bulk details update
     // Handle password with confirm field
