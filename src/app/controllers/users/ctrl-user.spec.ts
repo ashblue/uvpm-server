@@ -468,28 +468,112 @@ describe('CtrlUser', () => {
       });
 
       describe('password', () => {
-        xit('should let a user update the value with a confirmation field', () => {
-          console.log('placeholder');
+        it('should let a user update the value with a confirmation field', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: 'qwerty12345',
+              passwordConfirm: 'qwerty12345',
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              done();
+            });
         });
 
-        xit('should fail if a confirmation field is not provided', () => {
-          console.log('placeholder');
+        it('should fail if a confirm field is not provided', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: 'qwerty12345',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.password).to.be.ok;
+              done();
+            });
         });
 
-        xit('should reject invalid passwords', () => {
-          console.log('placeholder');
+        it('should fail if confirmation doesn\'t match', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: 'qwerty12345',
+              passwordConfirm: 'qwerty132345',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their password to null', () => {
-          console.log('placeholder');
+        it('should reject invalid passwords', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: 'qwerty',
+              passwordConfirm: 'qwerty',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.password).to.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their password to undefined', () => {
-          console.log('placeholder');
+        it('should not let a user set their password to null', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: null,
+              passwordConfirm: null,
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.password).to.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their password to an empty string', () => {
-          console.log('placeholder');
+        it('should not let a user set their password to undefined', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: undefined,
+              passwordConfirm: undefined,
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              done();
+            });
+        });
+
+        it('should not let a user set their password to an empty string', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              password: '',
+              passwordConfirm: '',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.password).to.be.ok;
+              done();
+            });
         });
       });
     });

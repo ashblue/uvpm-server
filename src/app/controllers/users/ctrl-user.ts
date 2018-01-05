@@ -102,6 +102,21 @@ export class CtrlUser {
       return;
     }
 
+    if (req.body.password !== req.body.passwordConfirm) {
+      delete req.body.password;
+
+      res.status(400).json({
+        errors: {
+          password: 'Invalid password update. Requires a matching password and passwordConfirm field',
+        },
+      });
+
+      return;
+    }
+
+    // Always delete password confirmation since it will crash the model update
+    delete req.body.passwordConfirm;
+
     this.db.models.User.findByIdAndUpdate(queryId,
       {$set: req.body},
       {
@@ -116,7 +131,5 @@ export class CtrlUser {
 
         res.json(record);
       });
-
-    // @TODO Handle password with confirm field
   }
 }
