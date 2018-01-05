@@ -344,38 +344,126 @@ describe('CtrlUser', () => {
             });
         });
 
-        xit('should not let a user set their name to null', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to null', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              name: null,
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.name).to.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their name to undefined', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to undefined', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              name: undefined,
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.name).to.contain(user.name);
+              done();
+            });
         });
 
-        xit('should not let a user set their name to an empty string', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to an empty string', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              name: '',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.name).to.be.ok;
+              done();
+            });
         });
       });
 
       describe('email', () => {
-        xit('should let a user update the value', () => {
-          console.log('placeholder');
+        it('should let a user update the value', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              email: 'colin@gmail.com',
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.email).to.contain('colin@gmail.com');
+              done();
+            });
         });
 
-        xit('should not let a user enter an invalid email', () => {
-          console.log('placeholder');
+        it('should not let a user enter an invalid email', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              email: 'asdf',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.email).to.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their name to null', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to null', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              email: null,
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.email).to.be.ok;
+              done();
+            });
         });
 
-        xit('should not let a user set their name to undefined', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to undefined', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              email: undefined,
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.email).to.contain(user.email);
+              done();
+            });
         });
 
-        xit('should not let a user set their name to an empty string', () => {
-          console.log('placeholder');
+        it('should not let a user set their name to an empty string', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              email: '',
+            })
+            .expect(400)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.errors.email).to.be.ok;
+              done();
+            });
         });
       });
 

@@ -110,15 +110,13 @@ export class CtrlUser {
       },
       (err, record) => {
         if (err) {
-          res.status(404).json(err);
+          res.status(400).json(err);
           return;
         }
 
         res.json(record);
       });
 
-    // Handle bulk details update
-    // Handle password with confirm field
-    // Verfiy the user matches their ID
+    // @TODO Handle password with confirm field
   }
 }
