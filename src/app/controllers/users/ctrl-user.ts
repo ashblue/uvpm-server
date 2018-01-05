@@ -84,12 +84,36 @@ export class CtrlUser {
           });
       }
 
+      req['user'] = user;
+
       success();
     })(req, res, next);
   }
 
   public update (req: express.Request, res: express.Response) {
+    const queryId = req.params.userId;
+    const userId = req['user']._id;
+
+    if (userId.toString() !== queryId) {
+      res.status(401).json({
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    this.db.models.User.findByIdAndUpdate(queryId, {$set: req.body}, {runValidators: true}, (err, record) => {
+      if (err) {
+        res.status(404).json(err);
+        return;
+      }
+
+      console.log(record);
+
+      res.json(record);
+    });
+
     // Handle bulk details update
     // Handle password with confirm field
+    // Verfiy the user matches their ID
   }
 }

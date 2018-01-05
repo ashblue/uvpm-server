@@ -8,6 +8,7 @@ import request = require('supertest');
 import bodyParser = require('body-parser');
 
 import * as chai from 'chai';
+import {IModelUser} from '../../models/user/model-user';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
@@ -49,6 +50,12 @@ describe('CtrlUser', () => {
 
       app.post('/users', (req, res) => {
         ctrl.register(req, res);
+      });
+
+      app.put('/users/:userId', (req, res, next) => {
+        ctrl.authenticate(req, res, next, () => {
+          ctrl.update(req, res);
+        });
       });
 
       app.post('/users/login', (req, res) => {
@@ -233,21 +240,108 @@ describe('CtrlUser', () => {
     });
 
     describe('update', () => {
-      xit('should not let a non authenticated user update credentials', () => {
-        console.log('placeholder');
+      let token: string;
+      let user: IModelUser;
+
+      beforeEach((done) => {
+        request(app)
+          .post('/users')
+          .send(userData)
+          .expect(200)
+          .end((err, res) => {
+            expect(err).to.be.not.ok;
+
+            request(app)
+              .post('/users/login')
+              .send(userData)
+              .expect(200)
+              .end((err, res) => {
+                token = `Bearer ${res.body.token}`;
+                user = res.body.user;
+                done();
+              });
+          });
       });
 
-      xit('should not let a different user update credentials', () => {
-        console.log('placeholder');
+      it('should fail when trying to update a non existent ID', (done) => {
+        request(app)
+          .put('/users/12345')
+          .set('Authorization', token)
+          .send({
+            name: 'asdfd',
+          })
+          .expect(401)
+          .end((err, res) => {
+            expect(err).to.not.be.ok;
+            expect(res.body.message).to.contain('Access denied');
+            done();
+          });
       });
 
-      xit('should let a user update their own credentials', () => {
-        console.log('placeholder');
+      it('should not let a non authenticated user update credentials', (done) => {
+        request(app)
+          .put(`/users/${user.id}`)
+          .send({
+            name: 'asdfd',
+          })
+          .expect(401)
+          .end((err, res) => {
+            expect(err).to.not.be.ok;
+            expect(res.body.message).to.contain('Authentication failed');
+            done();
+          });
+      });
+
+      it('should not let a different user update credentials', (done) => {
+        request(app)
+          .post('/users')
+          .send({
+            name: 'fdsa',
+            email: 'fdsa@fdsa.com',
+            password: 'asdfasd1',
+          })
+          .expect(200)
+          .end((err, res) => {
+            expect(err).to.be.not.ok;
+
+            request(app)
+              .post('/users/login')
+              .send({
+                email: 'fdsa@fdsa.com',
+                password: 'asdfasd1',
+              })
+              .expect(200)
+              .end((err, res) => {
+                const token2 = `Bearer ${res.body.token}`;
+
+                request(app)
+                  .put(`/users/${user.id}`)
+                  .set('Authorization', token2)
+                  .send({name: 'fdsa'})
+                  .expect(401)
+                  .end((err, res) => {
+                    expect(err).to.not.be.ok;
+                    expect(res.body.message).to.contain('Access denied');
+                    done();
+                  });
+              });
+          });
       });
 
       describe('name', () => {
-        xit('should let a user change their name', () => {
-          console.log('placeholder');
+        xit('should let a user change their name', (done) => {
+          request(app)
+            .put(`/users/${user.id}`)
+            .set('Authorization', token)
+            .send({
+              name: 'fdsa dsdfsddd',
+            })
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.not.be.ok;
+              expect(res.body.name).to.contain('fdsa dsdfsddd');
+              done();
+            });
         });
 
         xit('should not let a user set their name to null', () => {

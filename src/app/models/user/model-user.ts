@@ -16,6 +16,7 @@ export class ModelUserSchema extends ModelBase {
       toJSON: {
         transform: (doc, ret) => {
           // Hide all sensitive data from the API end point
+          ret.id = ret._id;
           delete ret._id;
           delete ret.password;
 
