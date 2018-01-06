@@ -29,8 +29,12 @@ export class CtrlUser {
     passport.use(strategy);
   }
 
-  public register (req: express.Request, res: express.Response) {
-    const user = new this.db.models.User(req.body);
+  public register = (req: express.Request, res: express.Response) => {
+    const user = new this.db.models.User({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+    });
     user.save((err, user) => {
       if (err) {
         res.status(500).json(err);
@@ -46,7 +50,7 @@ export class CtrlUser {
     });
   }
 
-  public login (req: express.Request, res: express.Response) {
+  public login = (req: express.Request, res: express.Response) => {
     const email = req.body.email;
     const password = req.body.password;
 
@@ -72,7 +76,7 @@ export class CtrlUser {
     });
   }
 
-  public authenticate (req: express.Request, res: express.Response, next: express.NextFunction, success: () => void) {
+  public authenticate = (req: express.Request, res: express.Response, next: express.NextFunction, success: () => void) => {
     passport.authenticate('jwt', userConfig.jwtSession, (err, user, info) => {
       if (err) {
         return next(err); // will generate a 500 error
@@ -91,7 +95,7 @@ export class CtrlUser {
     })(req, res, next);
   }
 
-  public update (req: IExpressRequest, res: express.Response) {
+  public update = (req: IExpressRequest, res: express.Response) => {
     const queryId = req.params.userId;
 
     if (!req.user || req.user.id.toString() !== queryId) {
@@ -116,6 +120,18 @@ export class CtrlUser {
 
     // Always delete password confirmation since it will crash the model update
     delete req.body.passwordConfirm;
+
+    // Assemble the body
+    const update: any = {};
+    if (req.body.name) {
+      update.name = req.body.name;
+    }
+    if (req.body.email) {
+      update.email = req.body.email;
+    }
+    if (req.body.password) {
+      update.password = req.body.password;
+    }
 
     this.db.models.User.findByIdAndUpdate(queryId,
       {$set: req.body},
