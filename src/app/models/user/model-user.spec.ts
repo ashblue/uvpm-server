@@ -46,40 +46,6 @@ describe('ModelBase', () => {
   });
 
   describe('definition property', () => {
-    describe('createdAt', () => {
-      it('should not allow the creation date to be overwritten', (done) => {
-        const m = new ModelUser({
-          name: 'asdf asdf',
-          email: 'asdf@asdf.com',
-          password: validPassword,
-        });
-
-        m.save((err, entry) => {
-          if (err) {
-            console.log(err);
-          }
-
-          expect(err).to.be.null;
-
-          entry.createdAt = new Date(0);
-          entry.save((err, entry) => {
-            err.toString().should.contain('createdAt cannot be modified');
-            done();
-          });
-        });
-      });
-
-      it('should inject a creation date upon initialization', () => {
-        const m = new ModelUser({
-          name: 'asdf asdf',
-          email: 'asdf@asdf.com',
-          password: validPassword,
-        });
-
-        m.createdAt.should.not.be.undefined;
-      });
-    });
-
     describe('name', () => {
       it('should not validate without a name', (done) => {
         const m = new ModelUser({
@@ -269,10 +235,6 @@ describe('ModelBase', () => {
         email: 'asdf@asdf.com',
         password: validPassword,
       });
-    });
-
-    it('should have a creation date', () => {
-      modelStub.toJSON().should.haveOwnProperty('createdAt');
     });
 
     it('should have a name', () => {
