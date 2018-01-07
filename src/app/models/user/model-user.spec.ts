@@ -15,7 +15,7 @@ describe('ModelBase', () => {
   let ModelUser: mongoose.Model<IModelUser>;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       dbRef.connection.db.dropDatabase().then(() => {
         ModelUser = dbRef.connection.model('user', new ModelUserSchema().schema);
         done();

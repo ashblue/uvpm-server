@@ -17,7 +17,7 @@ describe('ModelBase', () => {
   let ModelStub: mongoose.Model<mongoose.Document>;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       ModelStub = dbRef.connection.model('Stub', new ModelStubInternal().schema);
       done();
     });

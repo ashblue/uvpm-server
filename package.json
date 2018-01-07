@@ -10,8 +10,8 @@
     "watch:server": "nodemon \"./dist/bundle.js\" --watch \"./dist/*\"",
     "serve": "build && nodemon \"./dist/bundle.js\"",
     "build": "webpack",
-    "test": "mocha-webpack \"**/*.spec.ts\" --watch",
-    "test:single": "mocha-webpack --webpack-config webpack.config.js \"src/**/*.spec.ts\""
+    "test": "TEST=true mocha-webpack \"src/**/*.spec.ts\" --watch",
+    "test:single": "TEST=true mocha-webpack \"src/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",

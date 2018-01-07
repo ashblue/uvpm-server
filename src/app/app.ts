@@ -5,6 +5,7 @@ import { Database } from './controllers/databases/database';
 import { appConfig } from './helpers/app-config';
 import {RouteApi} from './routes/api/api';
 import passport = require('passport');
+import * as process from 'process';
 
 export class App {
   public db: Database;
@@ -22,8 +23,9 @@ export class App {
       this.express.use(this.logRequest);
     }
 
-    // @TODO Should eat an overridable environmental variable if set (include test)
-    this.db = new Database(appConfig.DB_DEFAULT_URL);
+    const dbUrl = process.env.TEST === 'true' ? appConfig.DB_TEST_URL : appConfig.DB_DEFAULT_URL;
+    this.db = new Database(dbUrl);
+
     this.routes = new RouteApi(this);
   }
 
