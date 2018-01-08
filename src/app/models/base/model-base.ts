@@ -25,9 +25,14 @@ export abstract class ModelBase {
   constructor () {
     this.schema = new mongoose.Schema(this.getSchemaDefinition(), this.schemaOptions);
 
+    const self = this;
     this.schema.pre('validate', function (this: mongoose.Document, next) {
       if (this.isModified('createdAt')) {
         next(new Error('createdAt cannot be modified'));
+        return;
+      }
+
+      if (self.onValidate(this, next)) {
         return;
       }
 
@@ -59,5 +64,15 @@ export abstract class ModelBase {
     ret.id = id;
 
     return ret;
+  }
+
+  /**
+   * Return true if an error was fired
+   * @param {"mongoose".Document} document
+   * @param next
+   * @returns {boolean}
+   */
+  protected onValidate (document: mongoose.Document, next): boolean {
+    return false;
   }
 }
