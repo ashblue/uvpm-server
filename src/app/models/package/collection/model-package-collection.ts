@@ -1,10 +1,17 @@
 import { ModelBase } from '../../base/model-base';
 
 import mongoose = require('mongoose');
+import { Schema } from 'mongoose';
 
 export class ModelPackageCollectionSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
     return {
+      owner: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+        required: true,
+      },
+
       name: {
         type: String,
         required: [true, 'Name is required'],
