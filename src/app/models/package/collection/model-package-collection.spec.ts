@@ -1,6 +1,6 @@
-import {appConfig} from '../../../helpers/app-config';
-import {Database} from '../../../controllers/databases/database';
-import {IModelPackageCollection} from './i-model-package-collection';
+import { appConfig } from '../../../helpers/app-config';
+import { Database } from '../../../controllers/databases/database';
+import { IModelPackageCollection } from './i-model-package-collection';
 import { IModelUser } from '../../user/i-model-user';
 import { IModelPackage } from '../i-model-package';
 import * as async from 'async';
@@ -271,8 +271,8 @@ describe('ModelPackageCollection', () => {
 
       it('should not validate if another package collection has the same name', (done) => {
         const name = 'asdf-asdf';
-        const entry = new db.models.PackageCollection(getPackageData({name}));
-        const entry2 = new db.models.PackageCollection(getPackageData({name}));
+        const entry = new db.models.PackageCollection(getPackageData({ name }));
+        const entry2 = new db.models.PackageCollection(getPackageData({ name }));
 
         entry.save((err) => {
           expect(err).to.be.not.ok;

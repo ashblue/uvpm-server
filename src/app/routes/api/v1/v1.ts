@@ -1,6 +1,6 @@
-import {RouteUsers} from './users/route-users';
-import {App} from '../../../app';
-import {CtrlUser} from '../../../controllers/users/ctrl-user';
+import { RouteUsers } from './users/route-users';
+import { App } from '../../../app';
+import { CtrlUser } from '../../../controllers/users/ctrl-user';
 
 const routeName = 'v1';
 

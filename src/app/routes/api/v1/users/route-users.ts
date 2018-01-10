@@ -1,6 +1,6 @@
 import * as express from 'express';
-import {CtrlUser} from '../../../../controllers/users/ctrl-user';
-import {check} from 'express-validator/check';
+import { CtrlUser } from '../../../../controllers/users/ctrl-user';
+import { check } from 'express-validator/check';
 
 export class RouteUsers {
   public router = express.Router();

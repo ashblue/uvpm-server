@@ -1,11 +1,11 @@
 import * as express from 'express';
-import {userConfig} from './user-config';
+import { userConfig } from './user-config';
 
 import jwt = require('jwt-simple');
 import passport = require('passport');
 import passportJWT = require('passport-jwt');
-import {Database} from '../databases/database';
-import {IExpressRequest} from '../../helpers/interfaces/i-express-request';
+import { Database } from '../databases/database';
+import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
 
 export class CtrlUser {
   constructor (private db: Database) {
@@ -42,7 +42,7 @@ export class CtrlUser {
       }
 
       if (user == null) {
-        res.status(500).json({message: 'Could not generate user'});
+        res.status(500).json({ message: 'Could not generate user' });
         return;
       }
 
@@ -55,7 +55,7 @@ export class CtrlUser {
     const password = req.body.password;
 
     const user = this.db.models.User;
-    user.findOne({email, password}, (err, user) => {
+    user.findOne({ email, password }, (err, user) => {
       if (err) {
         res.status(401).json(err);
         return;
@@ -68,7 +68,7 @@ export class CtrlUser {
         return;
       }
 
-      const token = jwt.encode({id: user.id}, userConfig.jwtSecret);
+      const token = jwt.encode({ id: user.id }, userConfig.jwtSecret);
       res.json({
         token,
         user,
@@ -134,7 +134,7 @@ export class CtrlUser {
     }
 
     this.db.models.User.findByIdAndUpdate(queryId,
-      {$set: req.body},
+      { $set: req.body },
       {
         runValidators: true,
         new: true,

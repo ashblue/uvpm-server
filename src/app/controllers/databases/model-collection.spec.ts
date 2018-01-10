@@ -1,6 +1,6 @@
-import {Database} from '../databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {ModelCollection} from './model-collection';
+import { Database } from '../databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { ModelCollection } from './model-collection';
 
 import * as chai from 'chai';
 const expect = chai.expect;

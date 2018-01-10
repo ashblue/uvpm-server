@@ -1,14 +1,14 @@
 import * as express from 'express';
-import {Database} from '../databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {CtrlUser} from './ctrl-user';
+import { Database } from '../databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { CtrlUser } from './ctrl-user';
 import passport = require('passport');
 
 import request = require('supertest');
 import bodyParser = require('body-parser');
 
 import * as chai from 'chai';
-import {IModelUser} from '../../models/user/i-model-user';
+import { IModelUser } from '../../models/user/i-model-user';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
@@ -190,7 +190,7 @@ describe('CtrlUser', () => {
       beforeEach((done) => {
         app.get('/users/auth', (req, res, next) => {
           ctrl.authenticate(req, res, next, () => {
-            res.send({message: 'success'});
+            res.send({ message: 'success' });
           });
         });
 
@@ -320,7 +320,7 @@ describe('CtrlUser', () => {
                 request(app)
                   .put(`/users/${user.id}`)
                   .set('Authorization', token2)
-                  .send({name: 'fdsa'})
+                  .send({ name: 'fdsa' })
                   .expect(401)
                   .end((err, res) => {
                     expect(err).to.not.be.ok;

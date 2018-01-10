@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import * as process from 'process';
 
 import * as chai from 'chai';
-import {appConfig} from './helpers/app-config';
+import { appConfig } from './helpers/app-config';
 const expect = chai.expect;
 
 describe('App', () => {

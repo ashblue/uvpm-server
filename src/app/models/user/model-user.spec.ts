@@ -1,8 +1,8 @@
 import * as mongoose from 'mongoose';
-import {Database} from '../../controllers/databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {ModelUserSchema} from './model-user';
-import {IModelUser} from './i-model-user';
+import { Database } from '../../controllers/databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { ModelUserSchema } from './model-user';
+import { IModelUser } from './i-model-user';
 
 import * as chai from 'chai';
 chai.should();
@@ -68,7 +68,7 @@ describe('ModelBase', () => {
 
         m.save((err, result: IModelUser) => {
           const name = result.name;
-          ModelUser.findByIdAndUpdate(m.id, {$set: {name: 'fdsa'}}, {new: true}, (err, result) => {
+          ModelUser.findByIdAndUpdate(m.id, { $set: { name: 'fdsa' } }, { new: true }, (err, result) => {
             expect(result).to.be.ok;
             if (result) {
               expect(result.name).to.not.equal(name);

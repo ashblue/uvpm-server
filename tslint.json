@@ -1,6 +1,7 @@
 {
   "defaultSeverity": "error",
   "extends": [
+    "tslint-eslint-rules",
     "tslint:recommended"
   ],
   "rules": {
@@ -18,6 +19,8 @@
     "object-literal-sort-keys": false,
     "no-shadowed-variable": false,
     "no-string-literal": false,
-    "ordered-imports": false
+    "ordered-imports": false,
+    "object-curly-spacing": true,
+    "no-empty-interface": false
   }
 }

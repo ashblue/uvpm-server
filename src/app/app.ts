@@ -3,7 +3,7 @@ import * as http from 'http';
 import bodyParser = require('body-parser');
 import { Database } from './controllers/databases/database';
 import { appConfig } from './helpers/app-config';
-import {RouteApi} from './routes/api/api';
+import { RouteApi } from './routes/api/api';
 import passport = require('passport');
 import * as process from 'process';
 

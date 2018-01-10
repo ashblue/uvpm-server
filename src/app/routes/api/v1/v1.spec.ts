@@ -1,4 +1,4 @@
-import {App} from '../../../app';
+import { App } from '../../../app';
 
 import * as chai from 'chai';
 const expect = chai.expect;

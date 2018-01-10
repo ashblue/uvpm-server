@@ -1,4 +1,4 @@
-import {IModelBase} from '../../base/i-model-base';
+import { IModelBase } from '../../base/i-model-base';
 import { IModelUser } from '../../user/i-model-user';
 import { IModelPackage } from '../i-model-package';
 

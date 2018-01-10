@@ -1,8 +1,8 @@
 import * as mongoose from 'mongoose';
-import {ModelBase} from './model-base';
-import {Database} from '../../controllers/databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {IModelBase} from './i-model-base';
+import { ModelBase } from './model-base';
+import { Database } from '../../controllers/databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { IModelBase } from './i-model-base';
 
 import * as chai from 'chai';
 chai.should();
@@ -26,7 +26,7 @@ describe('ModelBase', () => {
   beforeEach((done) => {
     db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       ModelStub = dbRef.connection.model('Stub', new ModelStubInternal().schema);
-      modelStub = new ModelStub({name: 'test'});
+      modelStub = new ModelStub({ name: 'test' });
       done();
     });
   });

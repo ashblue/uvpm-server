@@ -1,5 +1,5 @@
-import {RouteV1} from './v1/v1';
-import {App} from '../../app';
+import { RouteV1 } from './v1/v1';
+import { App } from '../../app';
 
 const routeName = 'api';
 
