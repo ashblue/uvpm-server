@@ -256,6 +256,9 @@ describe('CtrlUser', () => {
               .send(userData)
               .expect(200)
               .end((err, res) => {
+                expect(err).to.not.be.ok;
+                expect(res.body).to.haveOwnProperty('user');
+
                 token = `Bearer ${res.body.token}`;
                 user = res.body.user;
                 done();

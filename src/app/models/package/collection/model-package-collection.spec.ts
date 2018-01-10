@@ -1,30 +1,71 @@
 import {appConfig} from '../../../helpers/app-config';
 import {Database} from '../../../controllers/databases/database';
 import {IModelPackageCollection} from './i-model-package-collection';
+import { IModelUser } from '../../user/i-model-user';
+import { IModelPackage } from '../i-model-package';
+import * as async from 'async';
+import * as _ from 'lodash';
 
 import * as chai from 'chai';
-import { IModelUser } from '../../user/i-model-user';
 chai.should();
 const expect = chai.expect;
 
 describe('ModelPackageCollection', () => {
   let db: Database;
   let owner: IModelUser;
+  let pack: IModelPackage;
+  let packageCollectionDefault: any;
+
+  function getPackageData (extend?: any): any {
+    const data = {};
+
+    _.merge(data, packageCollectionDefault);
+
+    if (extend) {
+      _.merge(data, extend);
+    }
+
+    return data;
+  }
 
   beforeEach((done) => {
     db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       dbRef.connection.db.dropDatabase().then(() => {
-        owner = new db.models.User({
-          name: 'asdf',
-          email: 'asdf@asdf.com',
-          password: 'asdfasdf1',
-        });
 
-        owner.save((err, result) => {
-          expect(err).to.not.be.ok;
-          owner = result;
+        async.parallel([
+          (complete) => {
+            owner = new db.models.User({
+              name: 'asdf',
+              email: 'asdf@asdf.com',
+              password: 'asdfasdf1',
+            });
+
+            owner.save((err, result) => {
+              expect(err).to.not.be.ok;
+              owner = result;
+              complete();
+            });
+          },
+          (complete) => {
+            pack = new db.models.Package();
+            pack.save((err, result) => {
+              expect(err).to.not.be.ok;
+              pack = result;
+              complete();
+            });
+          },
+        ], () => {
+          packageCollectionDefault = {
+            owner,
+            name: 'asdf',
+            packages: [
+              pack,
+            ],
+          };
+
           done();
         });
+
       });
     });
   });
@@ -42,10 +83,8 @@ describe('ModelPackageCollection', () => {
   describe('schema', () => {
     describe('name', () => {
       it('should have this property', () => {
-        const entry: IModelPackageCollection = new db.models.PackageCollection({
-          name: 'asdf',
-          owner,
-        });
+        const details = getPackageData();
+        const entry: IModelPackageCollection = new db.models.PackageCollection(details);
 
         expect(entry.name).to.be.ok;
       });
@@ -97,10 +136,7 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow letters', (done) => {
-        const entry = new db.models.PackageCollection({
-          name: 'asdf',
-          owner,
-        });
+        const entry = new db.models.PackageCollection(getPackageData());
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -109,10 +145,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should not allow uppercase letters', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: 'ASDF',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.be.ok;
@@ -122,10 +157,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow numbers', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: '12345',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -134,10 +168,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow numbers with text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: 'asdf12345',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -146,10 +179,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow dashes with numbers', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: '12345-1234',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -158,10 +190,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow dashes with text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: 'asdf-asdf-fdsa',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -170,10 +201,9 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should allow dashes with numbers and text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name: 'asdf-12345',
-          owner,
-        });
+        }));
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -241,8 +271,8 @@ describe('ModelPackageCollection', () => {
 
       it('should not validate if another package collection has the same name', (done) => {
         const name = 'asdf-asdf';
-        const entry = new db.models.PackageCollection({name, owner});
-        const entry2 = new db.models.PackageCollection({name, owner});
+        const entry = new db.models.PackageCollection(getPackageData({name}));
+        const entry2 = new db.models.PackageCollection(getPackageData({name}));
 
         entry.save((err) => {
           expect(err).to.be.not.ok;
@@ -256,10 +286,9 @@ describe('ModelPackageCollection', () => {
       it('should not allow the package name to change on update', (done) => {
         const name = 'asdf-asdf';
         const newName = 'asdf';
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.PackageCollection(getPackageData({
           name,
-          owner,
-        });
+        }));
 
         entry.save((err) => {
           expect(err).to.be.not.ok;
@@ -276,10 +305,10 @@ describe('ModelPackageCollection', () => {
 
     describe('owner', () => {
       it('should have an owner property', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.PackageCollection(getPackageData({
           name: 'asdf',
           owner,
-        });
+        }));
 
         packCol.save((err, result: IModelPackageCollection) => {
           expect(err).to.not.be.ok;
@@ -289,12 +318,13 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should be required upon creation', (done) => {
-        const packCol = new db.models.PackageCollection({
-          name: 'asdf',
-        });
+        const data = getPackageData();
+        delete data['owner'];
+        const packCol = new db.models.PackageCollection(data);
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
+          expect(err.errors.owner.message).to.contain('Owner is required');
           done();
         });
       });
@@ -307,6 +337,7 @@ describe('ModelPackageCollection', () => {
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
+          expect(err.errors.owner.message).to.contain('Owner is required');
           done();
         });
       });
@@ -319,6 +350,7 @@ describe('ModelPackageCollection', () => {
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
+          expect(err.errors.owner.message).to.contain('Owner is required');
           done();
         });
       });
@@ -331,15 +363,16 @@ describe('ModelPackageCollection', () => {
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
+          expect(err.errors.owner.message).to.contain('Cast to ObjectID failed');
           done();
         });
       });
 
       it('should accept an ID', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.PackageCollection(getPackageData({
           name: 'asdf',
           owner: owner.id,
-        });
+        }));
 
         packCol.save((err, result) => {
           expect(err).to.not.be.ok;
@@ -350,12 +383,31 @@ describe('ModelPackageCollection', () => {
     });
 
     describe('packages', () => {
-      xit('should have a list of packages', () => {
-        console.log('placeholder');
+      it('should have a list of packages', (done) => {
+        const packCol = new db.models.PackageCollection(getPackageData());
+
+        packCol.save((err, result: IModelPackageCollection) => {
+          expect(err).to.not.be.ok;
+          expect(result.packages).to.be.ok;
+          expect(result.packages.length).to.equal(1);
+          done();
+        });
       });
 
-      xit('should require at least one created package to validate', () => {
-        console.log('placeholder');
+      it('should require at least one created package to validate', (done) => {
+        const packCol = new db.models.PackageCollection({
+          name: 'asdf',
+          owner,
+        });
+
+        packCol.save((err) => {
+          expect(err).be.ok;
+          expect(err.errors).to.be.ok;
+          expect(err.errors.packages).to.be.ok;
+          expect(err.errors.packages.message).to.contain('`packages` requires at least one package to initialize');
+
+          done();
+        });
       });
     });
   });
