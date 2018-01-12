@@ -19,6 +19,6 @@ export class ModelCollection {
   constructor (db: Database) {
     this.User = db.connection.model(ModelCollection.USER_ID, new ModelUserSchema().schema);
     this.Package = db.connection.model(ModelCollection.PACKAGE_ID, new ModelPackageSchema().schema);
-    this.PackageCollection = db.connection.model(ModelCollection.PACKAGE_COLLECTION_ID, new ModelPackageCollectionSchema().schema);
+    this.PackageCollection = db.connection.model(ModelCollection.PACKAGE_COLLECTION_ID, new ModelPackageCollectionSchema(db.connection).schema);
   }
 }

@@ -47,7 +47,9 @@ describe('ModelPackageCollection', () => {
             });
           },
           (complete) => {
-            pack = new db.models.Package();
+            pack = new db.models.Package({
+              version: 'asdf',
+            });
             pack.save((err, result) => {
               expect(err).to.not.be.ok;
               pack = result;
@@ -404,9 +406,42 @@ describe('ModelPackageCollection', () => {
           expect(err).be.ok;
           expect(err.errors).to.be.ok;
           expect(err.errors.packages).to.be.ok;
-          expect(err.errors.packages.message).to.contain('`packages` requires at least one package to initialize');
+          expect(err.errors.packages.message).to.contain('`packages` require at least one package to initialize');
 
           done();
+        });
+      });
+
+      it('should require that new packages have a unique name for the current collection', (done) => {
+        const packCol = new db.models.PackageCollection(getPackageData());
+        let packColUpdate: IModelPackageCollection;
+        const packAlt = new db.models.Package({ version: pack.version });
+
+        async.parallel([
+          (callback) => {
+            packCol.save((err, result: IModelPackageCollection) => {
+              expect(err).to.not.be.ok;
+              expect(result.packages).to.be.ok;
+              expect(result.packages.length).to.equal(1);
+              packColUpdate = result;
+              callback();
+            });
+          },
+          (callback) => {
+            packAlt.save((err) => {
+              expect(err).to.not.be.ok;
+              callback();
+            });
+          },
+        ], () => {
+          packColUpdate.packages.push(packAlt);
+          packColUpdate.save((err) => {
+            expect(err).to.be.ok;
+            expect(err.errors).to.be.ok;
+            expect(err.errors.packages).to.be.ok;
+            expect(err.errors.packages.message).to.contain('additional packages must have a unique name');
+            done();
+          });
         });
       });
     });

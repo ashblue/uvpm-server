@@ -1,8 +1,9 @@
-import { ModelBase } from '../../base/model-base';
-
 import mongoose = require('mongoose');
+
+import { ModelBase } from '../../base/model-base';
 import { Schema } from 'mongoose';
 import { ModelCollection } from '../../../controllers/databases/model-collection';
+import { IModelPackage } from '../i-model-package';
 
 export class ModelPackageCollectionSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
@@ -29,13 +30,42 @@ export class ModelPackageCollectionSchema extends ModelBase {
         type: [Schema.Types.ObjectId],
         ref: ModelCollection.PACKAGE_ID,
         validate: {
-          validator: (array) => {
-            return array && array.length !== 0;
+          isAsync: true,
+          validator: (array, success) => {
+            const packageIds = array.map((id) => mongoose.Types.ObjectId(id));
+            const pack = this.connection.model(ModelCollection.PACKAGE_ID);
+            pack.find({
+              _id: {
+                $in: packageIds,
+              },
+            }, (err, docs: [IModelPackage]) => {
+              if (err) {
+                console.error(err);
+                success(false);
+                return;
+              }
+
+              const ids: any = {};
+              for (const doc of docs) {
+                if (ids[doc.version]) {
+                  success(false);
+                  return;
+                }
+
+                ids[doc.version] = true;
+              }
+
+              success(array && array.length !== 0);
+            });
           },
-          message: '`packages` requires at least one package to initialize',
+          message: '`packages` require at least one package to initialize and additional packages must have a unique name',
         },
       },
     };
+  }
+
+  constructor (private connection: mongoose.Connection) {
+    super();
   }
 
   protected onValidate (document: mongoose.Document, next): boolean {
