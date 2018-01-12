@@ -49,6 +49,7 @@ describe('ModelPackageCollection', () => {
           (complete) => {
             pack = new db.models.Package({
               version: 'asdf',
+              archive: 'asdf',
             });
             pack.save((err, result) => {
               expect(err).to.not.be.ok;
@@ -415,7 +416,10 @@ describe('ModelPackageCollection', () => {
       it('should require that new packages have a unique name for the current collection', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData());
         let packColUpdate: IModelPackageCollection;
-        const packAlt = new db.models.Package({ version: pack.version });
+        const packAlt = new db.models.Package({
+          version: pack.version,
+          archive: 'asdf',
+        });
 
         async.parallel([
           (callback) => {

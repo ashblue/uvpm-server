@@ -17,6 +17,14 @@ export class ModelPackageSchema extends ModelBase {
           ' Example "a-0.1.4"',
         ],
       },
+      archive: {
+        type: String,
+        trim: true,
+        required: [
+          true,
+          '`archive` is required',
+        ],
+      },
     };
   }
 }
