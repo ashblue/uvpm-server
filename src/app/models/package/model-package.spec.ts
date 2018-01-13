@@ -324,5 +324,34 @@ describe('ModelPackage', () => {
         });
       });
     });
+
+    describe('description', () => {
+      it('should have a description', (done) => {
+        const pack = new db.models.Package({
+          version: 'a-0.1.4',
+          archive: 'FILE_PATH',
+          description: 'My description',
+        });
+
+        pack.save((err, result: IModelPackage) => {
+          expect(err).to.not.be.ok;
+          expect(result.description).to.be.ok;
+          done();
+        });
+      });
+
+      it('should be optional', (done) => {
+        const pack = new db.models.Package({
+          version: 'a-0.1.4',
+          archive: 'FILE_PATH',
+        });
+
+        pack.save((err, result: IModelPackage) => {
+          expect(err).to.not.be.ok;
+          expect(result.description).to.be.not.ok;
+          done();
+        });
+      });
+    });
   });
 });

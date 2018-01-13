@@ -25,6 +25,10 @@ export class ModelPackageSchema extends ModelBase {
           '`archive` is required',
         ],
       },
+      description: {
+        type: String,
+        trim: true,
+      },
     };
   }
 }
