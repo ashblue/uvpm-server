@@ -1,12 +1,93 @@
-// import * as express from 'express';
-// import jwt = require('jwt-simple');
-// import passport = require('passport');
-// import passportJWT = require('passport-jwt');
-// import { Database } from '../databases/database';
-// import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
-//
-// export class CtrlPackage {
-//   constructor (private db: Database) {
-//
-//   }
-// }
+import * as express from 'express';
+import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
+import * as async from 'async';
+import { Database } from '../databases/database';
+import { CtrlPackageVersion } from './versions/ctrl-package-version';
+import { IModelPackage } from '../../models/package/i-model-package';
+import { IModelPackageCollection } from '../../models/package/collection/i-model-package-collection';
+import { ModelCollection } from '../databases/model-collection';
+
+export class CtrlPackage {
+  private versions: CtrlPackageVersion;
+
+  constructor (private db: Database) {
+    this.versions = new CtrlPackageVersion(this.db);
+  }
+
+  public create = (req: IExpressRequest, res: express.Response) => {
+    const user = req.user;
+
+    if (!user) {
+      res.status(400)
+        .json({ message: 'Authentication is required' });
+      return;
+    }
+
+    let version: IModelPackage;
+    let pack: IModelPackageCollection;
+
+    async.series([
+      (callback) => {
+        // Verify name isn't already taken
+        this.db.models.PackageCollection.findOne({ name: req.body.name }, (err, result) => {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          if (!result) {
+            callback(undefined);
+          } else {
+            callback(new Error('Name already in use'));
+          }
+        });
+      },
+      (callback) => {
+        // Verify version can be created
+        this.versions.create({
+          version: req.body.version,
+          archive: req.body.archive,
+          description: req.body.description,
+        }, (err, result) => {
+          if (result) {
+            version = result;
+          }
+
+          callback(err);
+        });
+      },
+      (callback) => {
+        // Verify package can be created
+        const newPack = new this.db.models.PackageCollection({
+          name: req.body.name,
+          owner: user.id,
+          packages: [version.id],
+        });
+
+        newPack.save((err, result) => {
+          pack = result;
+          callback(err);
+        });
+      },
+      (callback) => {
+        pack.populate({
+          path: 'packages',
+          model: ModelCollection.PACKAGE_ID,
+        }, (err, result) => {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          res.json(result);
+          callback(undefined);
+        });
+      },
+    ], (err, results) => {
+      if (err) {
+        res.status(400)
+          .json(err);
+      }
+    });
+  }
+}

@@ -20,7 +20,7 @@ export class RouteUsers {
       .escape(),
   ];
 
-  constructor (ctrlUser: CtrlUser) {
+  constructor (public ctrlUser: CtrlUser) {
     // Cast body to proper values to prevent NoSQL injections
     this.router.use((req, res, next) => {
       if (req.body.name) {

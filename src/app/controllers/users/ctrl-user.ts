@@ -84,7 +84,7 @@ export class CtrlUser {
       // Generate a JSON response reflecting authentication status
       if (!user) {
         return res.status(401)
-          .send({
+          .json({
             message: 'Authentication failed',
           });
       }
