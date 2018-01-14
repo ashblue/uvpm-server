@@ -5,13 +5,16 @@ import { Schema } from 'mongoose';
 import { ModelCollection } from '../../../controllers/databases/model-collection';
 import { IModelPackage } from '../i-model-package';
 
+/**
+ * @TODO Rename as `ModelPackageSchema`
+ */
 export class ModelPackageCollectionSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
     return {
-      owner: {
+      author: {
         type: Schema.Types.ObjectId,
         ref: ModelCollection.USER_ID,
-        required: [true, 'Owner is required'],
+        required: [true, 'Author is required'],
       },
 
       name: {

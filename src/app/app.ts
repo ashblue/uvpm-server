@@ -5,7 +5,6 @@ import { Database } from './controllers/databases/database';
 import { appConfig } from './helpers/app-config';
 import { RouteApi } from './routes/api/api';
 import passport = require('passport');
-import * as process from 'process';
 
 export class App {
   public db: Database;
@@ -16,14 +15,14 @@ export class App {
 
   constructor (logs: boolean = false) {
     this.express = express();
-    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.json({ limit: '10mb' }));
     this.express.use(passport.initialize());
 
     if (logs) {
       this.express.use(this.logRequest);
     }
 
-    const dbUrl = process.env.TEST === 'true' ? appConfig.DB_TEST_URL : appConfig.DB_DEFAULT_URL;
+    const dbUrl = appConfig.isEnvTest() ? appConfig.DB_TEST_URL : appConfig.DB_DEFAULT_URL;
     this.db = new Database(dbUrl);
 
     this.routes = new RouteApi(this);

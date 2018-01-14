@@ -1,9 +1,13 @@
 import { ModelBase } from '../base/model-base';
 import mongoose = require('mongoose');
 
+/**
+ * @TODO Rename as `ModelPackageVersion`
+ */
 export class ModelPackageSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
     return {
+      // @TODO rename `name`
       version: {
         required: [
           true,

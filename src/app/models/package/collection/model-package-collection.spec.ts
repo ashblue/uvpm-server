@@ -59,7 +59,7 @@ describe('ModelPackageCollection', () => {
           },
         ], () => {
           packageCollectionDefault = {
-            owner,
+            author: owner,
             name: 'asdf',
             packages: [
               pack,
@@ -306,28 +306,28 @@ describe('ModelPackageCollection', () => {
       });
     });
 
-    describe('owner', () => {
-      it('should have an owner property', (done) => {
+    describe('author', () => {
+      it('should have an author property', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData({
           name: 'asdf',
-          owner,
+          author: owner,
         }));
 
         packCol.save((err, result: IModelPackageCollection) => {
           expect(err).to.not.be.ok;
-          expect(result.owner).to.be.ok;
+          expect(result.author).to.be.ok;
           done();
         });
       });
 
       it('should be required upon creation', (done) => {
         const data = getPackageData();
-        delete data['owner'];
+        delete data['author'];
         const packCol = new db.models.PackageCollection(data);
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
-          expect(err.errors.owner.message).to.contain('Owner is required');
+          expect(err.errors.author.message).to.contain('Author is required');
           done();
         });
       });
@@ -335,12 +335,12 @@ describe('ModelPackageCollection', () => {
       it('should not allow null', (done) => {
         const packCol = new db.models.PackageCollection({
           name: 'asdf',
-          owner: null,
+          author: null,
         });
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
-          expect(err.errors.owner.message).to.contain('Owner is required');
+          expect(err.errors.author.message).to.contain('Author is required');
           done();
         });
       });
@@ -348,12 +348,12 @@ describe('ModelPackageCollection', () => {
       it('should not allow undefined', (done) => {
         const packCol = new db.models.PackageCollection({
           name: 'asdf',
-          owner: undefined,
+          author: undefined,
         });
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
-          expect(err.errors.owner.message).to.contain('Owner is required');
+          expect(err.errors.author.message).to.contain('Author is required');
           done();
         });
       });
@@ -361,12 +361,12 @@ describe('ModelPackageCollection', () => {
       it('should not allow a fake owner ID', (done) => {
         const packCol = new db.models.PackageCollection({
           name: 'asdf',
-          owner: owner._id + 1,
+          author: owner._id + 1,
         });
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
-          expect(err.errors.owner.message).to.contain('Cast to ObjectID failed');
+          expect(err.errors.author.message).to.contain('Cast to ObjectID failed');
           done();
         });
       });
@@ -374,12 +374,12 @@ describe('ModelPackageCollection', () => {
       it('should accept an ID', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData({
           name: 'asdf',
-          owner: owner.id,
+          author: owner.id,
         }));
 
         packCol.save((err, result) => {
           expect(err).to.not.be.ok;
-          expect(result.owner).to.be.ok;
+          expect(result.author).to.be.ok;
           done();
         });
       });

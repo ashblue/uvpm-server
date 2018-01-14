@@ -1,8 +1,10 @@
 import { CtrlPackage } from './ctrl-package';
 import request = require('supertest');
 import * as chai from 'chai';
-// import { IModelUser } from '../../models/user/i-model-user';
+import { IModelUser } from '../../models/user/i-model-user';
 import { App } from '../../app';
+import * as async from 'async';
+import { fileHelper } from '../../helpers/file-creator';
 
 const expect = chai.expect;
 
@@ -22,6 +24,13 @@ describe('CtrlPackage', () => {
     app.db.closeConnection(done);
   });
 
+  after((done) => {
+    fileHelper.clearFileTestFolder((err) => {
+      expect(err).to.be.not.ok;
+      done();
+    });
+  });
+
   it('should initialize', () => {
     const ctrl = new CtrlPackage(app.db);
 
@@ -32,8 +41,9 @@ describe('CtrlPackage', () => {
     const routePackages = '/packages';
 
     let ctrl: CtrlPackage;
-    // let user: IModelUser;
+    let user: IModelUser;
     let token: string;
+    let fileBase64: string;
 
     beforeEach((done) => {
       ctrl = new CtrlPackage(app.db);
@@ -49,26 +59,39 @@ describe('CtrlPackage', () => {
         password: 'asdfasdf1',
       };
 
-      request(app.express)
-        .post('/api/v1/users')
-        .send(userDetails)
-        .expect(200)
-        .end((err, res) => {
-          expect(err).to.be.not.ok;
-
+      async.parallel([
+        (callback) => {
+          fileHelper.createBase64File(1, (base64) => {
+            fileBase64 = base64;
+            callback();
+          });
+        },
+        (callback) => {
           request(app.express)
-            .post('/api/v1/users/login')
+            .post('/api/v1/users')
             .send(userDetails)
             .expect(200)
             .end((err, res) => {
-              expect(err).to.not.be.ok;
-              expect(res.body).to.haveOwnProperty('user');
+              expect(err).to.be.not.ok;
 
-              token = `Bearer ${res.body.token}`;
-              // user = res.body.user;
-              done();
+              request(app.express)
+                .post('/api/v1/users/login')
+                .send(userDetails)
+                .expect(200)
+                .end((err, res) => {
+                  expect(err).to.not.be.ok;
+                  expect(res.body).to.haveOwnProperty('user');
+
+                  token = `Bearer ${res.body.token}`;
+                  user = res.body.user;
+
+                  callback();
+                });
             });
-        });
+        },
+      ], () => {
+        done();
+      });
     });
 
     describe('create', () => {
@@ -79,15 +102,21 @@ describe('CtrlPackage', () => {
           .send({
             name: 'asdf',
             version: '1.0.0',
-            archive: 'FILE_HERE',
+            archive: fileBase64,
             description: 'My description',
           })
           .expect('Content-Type', /json/)
           .expect(200)
           .end((err, res) => {
             expect(err).to.not.be.ok;
+
             expect(res.body).to.haveOwnProperty('name');
             expect(res.body).to.haveOwnProperty('packages');
+
+            expect(res.body).to.haveOwnProperty('author');
+            expect(res.body.author).to.haveOwnProperty('id');
+            expect(res.body.author.id).to.equal(user.id);
+
             expect(res.body.packages).to.be.ok;
             expect(res.body.packages.length).to.equal(1);
             expect(res.body.packages[0]).to.haveOwnProperty('version');
@@ -124,7 +153,7 @@ describe('CtrlPackage', () => {
           .expect(400)
           .end((err, res) => {
             expect(err).to.not.be.ok;
-            expect(res.body.errors.name.message).to.contain('Name is required');
+            expect(res.body.message).to.contain('Name is required');
             done();
           });
       });
@@ -146,28 +175,54 @@ describe('CtrlPackage', () => {
           });
       });
 
-      xit('should fail if a version is not provided', () => {
-        console.log('placeholder');
+      it('should fail if a version is not provided', (done) => {
+        request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            file: 'FILE',
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .end((err, res) => {
+            expect(err).to.not.be.ok;
+            expect(res.body.errors.version.message).to.contain('Version is required');
+            done();
+          });
       });
 
-      xit('should fail if the name is already taken', () => {
-        console.log('placeholder');
-      });
+      it('should fail if the name is already taken', (done) => {
+        request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            version: '1.0.0',
+            archive: 'FILE_HERE',
+          })
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .end((err) => {
+            expect(err).to.not.be.ok;
 
-      xit('should attach the user to the newly created package', () => {
-        console.log('placeholder');
-      });
+            request(app.express)
+              .post(routePackages)
+              .set('Authorization', token)
+              .send({
+                name: 'asdf',
+                version: '1.0.0',
+                archive: 'FILE_HERE',
+              })
+              .expect('Content-Type', /json/)
+              .expect(400)
+              .end((err, res) => {
+                expect(err).to.not.be.ok;
+                expect(res.body.message).contains('Name already in use');
 
-      xit('should fail if the version creation returns an error', () => {
-        console.log('placeholder');
-      });
-
-      xit('should fail if the package details are invalid', () => {
-        console.log('placeholder');
-      });
-
-      xit('should delete the version if package creation fails', () => {
-        console.log('placeholder');
+                done();
+              });
+          });
       });
     });
   });

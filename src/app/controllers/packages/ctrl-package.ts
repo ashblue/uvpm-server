@@ -23,6 +23,12 @@ export class CtrlPackage {
       return;
     }
 
+    // Trigger this early to prevent accidentally creating a new file from the data
+    if (!req.body.name) {
+      res.status(400)
+        .json({ message: 'Name is required' });
+    }
+
     let version: IModelPackage;
     let pack: IModelPackageCollection;
 
@@ -38,7 +44,7 @@ export class CtrlPackage {
           if (!result) {
             callback(undefined);
           } else {
-            callback(new Error('Name already in use'));
+            callback({ message: 'Name already in use. Please choose another' });
           }
         });
       },
@@ -60,7 +66,7 @@ export class CtrlPackage {
         // Verify package can be created
         const newPack = new this.db.models.PackageCollection({
           name: req.body.name,
-          owner: user.id,
+          author: user.id,
           packages: [version.id],
         });
 
@@ -70,10 +76,15 @@ export class CtrlPackage {
         });
       },
       (callback) => {
-        pack.populate({
-          path: 'packages',
-          model: ModelCollection.PACKAGE_ID,
-        }, (err, result) => {
+        pack.populate([
+          {
+            path: 'packages',
+            model: ModelCollection.PACKAGE_ID,
+          },
+          {
+            path: 'author',
+          },
+        ], (err, result) => {
           if (err) {
             callback(err);
             return;
@@ -83,11 +94,41 @@ export class CtrlPackage {
           callback(undefined);
         });
       },
-    ], (err, results) => {
-      if (err) {
+    ], (err) => {
+      if (!err) {
+        return;
+      }
+
+      // Run data cleanup to prevent object leaks in the database
+      async.series([
+        (callback) => {
+          if (!version) {
+            callback();
+            return;
+          }
+
+          this.db.models.Package.findByIdAndRemove(version, (errPack) => {
+            callback(errPack);
+          });
+        },
+        (callback) => {
+          if (!pack) {
+            callback();
+            return;
+          }
+
+          this.db.models.PackageCollection.findByIdAndRemove(pack, (errVersion) => {
+            callback(errVersion);
+          });
+        },
+      ], (errFinal) => {
+        if (errFinal) {
+          console.error(errFinal);
+        }
+
         res.status(400)
           .json(err);
-      }
+      });
     });
   }
 }

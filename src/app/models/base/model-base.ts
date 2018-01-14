@@ -57,7 +57,6 @@ export abstract class ModelBase {
   protected transform (doc, ret) {
     const id = ret._id;
 
-    delete ret.owner;
     delete ret._id;
     delete ret.__v;
 

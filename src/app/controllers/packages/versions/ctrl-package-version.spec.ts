@@ -4,6 +4,7 @@ import { appConfig } from '../../../helpers/app-config';
 
 import * as chai from 'chai';
 import { CtrlPackageVersion } from './ctrl-package-version';
+import { fileHelper } from '../../../helpers/file-creator';
 const expect = chai.expect;
 
 describe('CtrlPackageVersion', () => {
@@ -21,6 +22,13 @@ describe('CtrlPackageVersion', () => {
     db.closeConnection(done);
   });
 
+  after((done) => {
+    fileHelper.clearFileTestFolder((err) => {
+      expect(err).to.be.not.ok;
+      done();
+    });
+  });
+
   it('should initialize', () => {
     const ctrl = new CtrlUser(db);
 
@@ -29,40 +37,70 @@ describe('CtrlPackageVersion', () => {
 
   describe('when initialized', () => {
     let ctrl: CtrlPackageVersion;
+    let fileBase64: string;
 
-    beforeEach(() => {
+    beforeEach((done) => {
       ctrl = new CtrlPackageVersion(db);
       expect(ctrl).to.be.ok;
+
+      fileHelper.createBase64File(1, (base64) => {
+        fileBase64 = base64;
+        done();
+      });
     });
 
     describe('create', () => {
-      xit('should create a new version and fire a callback with the new object', (done) => {
-        // ctrl.create({version: '1.0.0'}, FILEHERE, done);
+      it('should create a new version object', (done) => {
+        ctrl.create({
+          version: 'asdf',
+          archive: fileBase64,
+        }, (err, result) => {
+          expect(err).to.be.not.ok;
+          expect(result).to.be.ok;
+
+          if (result) {
+            expect(result.version).to.eq('asdf');
+            expect(result.archive).to.be.ok;
+          }
+
+          done();
+        });
       });
 
-      xit('should error if an invalid object is provided', () => {
-        console.log('placeholder');
+      it('should error if invalid data is provided', (done) => {
+        ctrl.create({
+          version: '',
+          archive: fileBase64,
+        }, (err) => {
+          expect(err).to.be.ok;
+          if (err) {
+            expect(err.message).to.contain('Version is required');
+          }
+
+          done();
+        });
       });
 
       describe('file handling', () => {
-        xit('should attach an http code to access the archive', () => {
+        xit('should convert the archive to a full http code when returned', () => {
+          // @TODO This should be done at the model level on JSON convert
+          // @TODO The http prepend should only trigger if not an absolute URL
           console.log('placeholder');
         });
 
-        xit('should fail if a file isn\'t provided', () => {
+        xit('should place the file in public/tmp-files', () => {
           console.log('placeholder');
         });
 
-        xit('should fail if the file size is too large', () => {
+        xit('writes files to the public/files folder if out of test mode', () => {
           console.log('placeholder');
         });
 
-        xit('should only accept *.tar.b2z files', () => {
+        xit('should provide a working http address to download the file', () => {
           console.log('placeholder');
-
         });
 
-        xit('should limit file size to 5mb', () => {
+        xit('should fail if the file size is over 5mb large', () => {
           console.log('placeholder');
         });
       });
