@@ -1,6 +1,6 @@
-import { IModelPackage } from '../../../models/package/i-model-package';
+import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 import { Database } from '../../databases/database';
-import { IPackageData } from '../../../models/package/i-package-data';
+import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
 import * as fs from 'fs';
 import { appConfig } from '../../../helpers/app-config';
 import uuidv4 = require('uuid/v4');
@@ -13,8 +13,8 @@ export class CtrlPackageVersion {
   constructor (private db: Database) {
   }
 
-  public create (data: IPackageData, done: (err?: Error, result?: IModelPackage) => void) {
-    const version = new this.db.models.Package(data);
+  public create (data: IPackageVersionData, done: (err?: Error, result?: IModelPackageVersion) => void) {
+    const version = new this.db.models.PackageVersion(data);
     const err = version.validateSync();
 
     if (err) {

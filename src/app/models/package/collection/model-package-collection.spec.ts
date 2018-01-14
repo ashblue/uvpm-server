@@ -2,7 +2,7 @@ import { appConfig } from '../../../helpers/app-config';
 import { Database } from '../../../controllers/databases/database';
 import { IModelPackageCollection } from './i-model-package-collection';
 import { IModelUser } from '../../user/i-model-user';
-import { IModelPackage } from '../i-model-package';
+import { IModelPackageVersion } from '../version/i-model-package-version';
 import * as async from 'async';
 import * as _ from 'lodash';
 
@@ -13,7 +13,7 @@ const expect = chai.expect;
 describe('ModelPackageCollection', () => {
   let db: Database;
   let owner: IModelUser;
-  let pack: IModelPackage;
+  let pack: IModelPackageVersion;
   let packageCollectionDefault: any;
 
   function getPackageData (extend?: any): any {
@@ -47,8 +47,8 @@ describe('ModelPackageCollection', () => {
             });
           },
           (complete) => {
-            pack = new db.models.Package({
-              version: 'asdf',
+            pack = new db.models.PackageVersion({
+              name: 'asdf',
               archive: 'asdf',
             });
             pack.save((err, result) => {
@@ -416,8 +416,8 @@ describe('ModelPackageCollection', () => {
       it('should require that new packages have a unique name for the current collection', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData());
         let packColUpdate: IModelPackageCollection;
-        const packAlt = new db.models.Package({
-          version: pack.version,
+        const packAlt = new db.models.PackageVersion({
+          name: pack.name,
           archive: 'asdf',
         });
 

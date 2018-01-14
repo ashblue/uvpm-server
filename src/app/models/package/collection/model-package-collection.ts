@@ -3,7 +3,7 @@ import mongoose = require('mongoose');
 import { ModelBase } from '../../base/model-base';
 import { Schema } from 'mongoose';
 import { ModelCollection } from '../../../controllers/databases/model-collection';
-import { IModelPackage } from '../i-model-package';
+import { IModelPackageVersion } from '../version/i-model-package-version';
 
 /**
  * @TODO Rename as `ModelPackageSchema`
@@ -31,17 +31,17 @@ export class ModelPackageCollectionSchema extends ModelBase {
 
       packages: {
         type: [Schema.Types.ObjectId],
-        ref: ModelCollection.PACKAGE_ID,
+        ref: ModelCollection.PACKAGE_VERSION_ID,
         validate: {
           isAsync: true,
           validator: (array, success) => {
             const packageIds = array.map((id) => mongoose.Types.ObjectId(id));
-            const pack = this.connection.model(ModelCollection.PACKAGE_ID);
+            const pack = this.connection.model(ModelCollection.PACKAGE_VERSION_ID);
             pack.find({
               _id: {
                 $in: packageIds,
               },
-            }, (err, docs: [IModelPackage]) => {
+            }, (err, docs: [IModelPackageVersion]) => {
               if (err) {
                 console.error(err);
                 success(false);
@@ -50,12 +50,12 @@ export class ModelPackageCollectionSchema extends ModelBase {
 
               const ids: any = {};
               for (const doc of docs) {
-                if (ids[doc.version]) {
+                if (ids[doc.name]) {
                   success(false);
                   return;
                 }
 
-                ids[doc.version] = true;
+                ids[doc.name] = true;
               }
 
               success(array && array.length !== 0);

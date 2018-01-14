@@ -95,7 +95,7 @@ describe('CtrlPackage', () => {
     });
 
     describe('create', () => {
-      it('should create a new package with a version', (done) => {
+      it('should create a new package with a name', (done) => {
         request(app.express)
           .post(routePackages)
           .set('Authorization', token)
@@ -119,7 +119,7 @@ describe('CtrlPackage', () => {
 
             expect(res.body.packages).to.be.ok;
             expect(res.body.packages.length).to.equal(1);
-            expect(res.body.packages[0]).to.haveOwnProperty('version');
+            expect(res.body.packages[0]).to.haveOwnProperty('name');
             expect(res.body.packages[0]).to.haveOwnProperty('archive');
             expect(res.body.packages[0]).to.haveOwnProperty('description');
             done();
@@ -170,7 +170,7 @@ describe('CtrlPackage', () => {
           .expect(400)
           .end((err, res) => {
             expect(err).to.not.be.ok;
-            expect(res.body.errors.archive.message).to.contain('`archive` is required');
+            expect(res.body.errors.archive.message).to.contain('Version archive is required');
             done();
           });
       });
@@ -187,7 +187,7 @@ describe('CtrlPackage', () => {
           .expect(400)
           .end((err, res) => {
             expect(err).to.not.be.ok;
-            expect(res.body.errors.version.message).to.contain('Version is required');
+            expect(res.body.errors.name.message).to.contain('Version name is required');
             done();
           });
       });

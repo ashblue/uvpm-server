@@ -50,16 +50,16 @@ describe('CtrlPackageVersion', () => {
     });
 
     describe('create', () => {
-      it('should create a new version object', (done) => {
+      it('should create a new name object', (done) => {
         ctrl.create({
-          version: 'asdf',
+          name: 'asdf',
           archive: fileBase64,
         }, (err, result) => {
           expect(err).to.be.not.ok;
           expect(result).to.be.ok;
 
           if (result) {
-            expect(result.version).to.eq('asdf');
+            expect(result.name).to.eq('asdf');
             expect(result.archive).to.be.ok;
           }
 
@@ -69,12 +69,12 @@ describe('CtrlPackageVersion', () => {
 
       it('should error if invalid data is provided', (done) => {
         ctrl.create({
-          version: '',
+          name: '',
           archive: fileBase64,
         }, (err) => {
           expect(err).to.be.ok;
           if (err) {
-            expect(err.message).to.contain('Version is required');
+            expect(err.message).to.contain('Version name is required');
           }
 
           done();

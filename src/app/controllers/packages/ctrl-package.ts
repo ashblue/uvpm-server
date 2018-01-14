@@ -3,7 +3,7 @@ import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
 import * as async from 'async';
 import { Database } from '../databases/database';
 import { CtrlPackageVersion } from './versions/ctrl-package-version';
-import { IModelPackage } from '../../models/package/i-model-package';
+import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 import { IModelPackageCollection } from '../../models/package/collection/i-model-package-collection';
 import { ModelCollection } from '../databases/model-collection';
 
@@ -29,7 +29,7 @@ export class CtrlPackage {
         .json({ message: 'Name is required' });
     }
 
-    let version: IModelPackage;
+    let version: IModelPackageVersion;
     let pack: IModelPackageCollection;
 
     async.series([
@@ -49,9 +49,9 @@ export class CtrlPackage {
         });
       },
       (callback) => {
-        // Verify version can be created
+        // Verify name can be created
         this.versions.create({
-          version: req.body.version,
+          name: req.body.version,
           archive: req.body.archive,
           description: req.body.description,
         }, (err, result) => {
@@ -79,7 +79,7 @@ export class CtrlPackage {
         pack.populate([
           {
             path: 'packages',
-            model: ModelCollection.PACKAGE_ID,
+            model: ModelCollection.PACKAGE_VERSION_ID,
           },
           {
             path: 'author',
@@ -107,7 +107,7 @@ export class CtrlPackage {
             return;
           }
 
-          this.db.models.Package.findByIdAndRemove(version, (errPack) => {
+          this.db.models.PackageVersion.findByIdAndRemove(version, (errPack) => {
             callback(errPack);
           });
         },

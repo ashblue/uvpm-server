@@ -31,7 +31,7 @@ describe('ModelCollection', () => {
 
   it('should populate the package model', () => {
     const col = new ModelCollection(db);
-    expect(col.Package).to.be.ok;
+    expect(col.PackageVersion).to.be.ok;
   });
 
   it('should populate the package collection model', () => {
