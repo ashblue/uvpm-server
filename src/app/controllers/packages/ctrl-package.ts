@@ -4,7 +4,7 @@ import * as async from 'async';
 import { Database } from '../databases/database';
 import { CtrlPackageVersion } from './versions/ctrl-package-version';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
-import { IModelPackageCollection } from '../../models/package/collection/i-model-package-collection';
+import { IModelPackage } from '../../models/package/i-model-package';
 import { ModelCollection } from '../databases/model-collection';
 
 export class CtrlPackage {
@@ -30,7 +30,7 @@ export class CtrlPackage {
     }
 
     let version: IModelPackageVersion;
-    let pack: IModelPackageCollection;
+    let pack: IModelPackage;
 
     async.series([
       (callback) => {
@@ -67,7 +67,7 @@ export class CtrlPackage {
         const newPack = new this.db.models.PackageCollection({
           name: req.body.name,
           author: user.id,
-          packages: [version.id],
+          versions: [version.id],
         });
 
         newPack.save((err, result) => {
@@ -78,7 +78,7 @@ export class CtrlPackage {
       (callback) => {
         pack.populate([
           {
-            path: 'packages',
+            path: 'versions',
             model: ModelCollection.PACKAGE_VERSION_ID,
           },
           {

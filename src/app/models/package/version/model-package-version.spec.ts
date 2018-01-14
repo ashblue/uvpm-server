@@ -6,7 +6,7 @@ import { IModelPackageVersion } from './i-model-package-version';
 chai.should();
 const expect = chai.expect;
 
-describe('ModelPackageVersion', () => {
+describe('ModelPackageVersionSchema', () => {
   let db: Database;
 
   beforeEach((done) => {

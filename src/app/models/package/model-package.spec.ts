@@ -1,8 +1,8 @@
-import { appConfig } from '../../../helpers/app-config';
-import { Database } from '../../../controllers/databases/database';
-import { IModelPackageCollection } from './i-model-package-collection';
-import { IModelUser } from '../../user/i-model-user';
-import { IModelPackageVersion } from '../version/i-model-package-version';
+import { appConfig } from '../../helpers/app-config';
+import { Database } from '../../controllers/databases/database';
+import { IModelPackage } from './i-model-package';
+import { IModelUser } from '../user/i-model-user';
+import { IModelPackageVersion } from './version/i-model-package-version';
 import * as async from 'async';
 import * as _ from 'lodash';
 
@@ -10,7 +10,7 @@ import * as chai from 'chai';
 chai.should();
 const expect = chai.expect;
 
-describe('ModelPackageCollection', () => {
+describe('ModelPackageSchema', () => {
   let db: Database;
   let owner: IModelUser;
   let pack: IModelPackageVersion;
@@ -61,7 +61,7 @@ describe('ModelPackageCollection', () => {
           packageCollectionDefault = {
             author: owner,
             name: 'asdf',
-            packages: [
+            versions: [
               pack,
             ],
           };
@@ -87,7 +87,7 @@ describe('ModelPackageCollection', () => {
     describe('name', () => {
       it('should have this property', () => {
         const details = getPackageData();
-        const entry: IModelPackageCollection = new db.models.PackageCollection(details);
+        const entry: IModelPackage = new db.models.PackageCollection(details);
 
         expect(entry.name).to.be.ok;
       });
@@ -103,7 +103,7 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should reject an empty string', (done) => {
-        const entry: IModelPackageCollection = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.PackageCollection({
           name: '',
         });
 
@@ -115,7 +115,7 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should reject a null value', (done) => {
-        const entry: IModelPackageCollection = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.PackageCollection({
           name: null,
         });
 
@@ -127,7 +127,7 @@ describe('ModelPackageCollection', () => {
       });
 
       it('should reject an undefined value', (done) => {
-        const entry: IModelPackageCollection = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.PackageCollection({
           name: undefined,
         });
 
@@ -154,7 +154,7 @@ describe('ModelPackageCollection', () => {
 
         entry.validate((err) => {
           expect(err).to.be.ok;
-          expect(err.errors.name.message).to.contain('Names can only contain lowercase letters');
+          expect(err.errors.name.message).to.contain('can only contain lowercase letters');
           done();
         });
       });
@@ -313,7 +313,7 @@ describe('ModelPackageCollection', () => {
           author: owner,
         }));
 
-        packCol.save((err, result: IModelPackageCollection) => {
+        packCol.save((err, result: IModelPackage) => {
           expect(err).to.not.be.ok;
           expect(result.author).to.be.ok;
           done();
@@ -385,14 +385,14 @@ describe('ModelPackageCollection', () => {
       });
     });
 
-    describe('packages', () => {
-      it('should have a list of packages', (done) => {
+    describe('versions', () => {
+      it('should have a list of versions', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData());
 
-        packCol.save((err, result: IModelPackageCollection) => {
+        packCol.save((err, result: IModelPackage) => {
           expect(err).to.not.be.ok;
-          expect(result.packages).to.be.ok;
-          expect(result.packages.length).to.equal(1);
+          expect(result.versions).to.be.ok;
+          expect(result.versions.length).to.equal(1);
           done();
         });
       });
@@ -406,16 +406,16 @@ describe('ModelPackageCollection', () => {
         packCol.save((err) => {
           expect(err).be.ok;
           expect(err.errors).to.be.ok;
-          expect(err.errors.packages).to.be.ok;
-          expect(err.errors.packages.message).to.contain('`packages` require at least one package to initialize');
+          expect(err.errors.versions).to.be.ok;
+          expect(err.errors.versions.message).to.contain('`versions` require at least one version to initialize');
 
           done();
         });
       });
 
-      it('should require that new packages have a unique name for the current collection', (done) => {
+      it('should require that new versions have a unique name for the current collection', (done) => {
         const packCol = new db.models.PackageCollection(getPackageData());
-        let packColUpdate: IModelPackageCollection;
+        let packColUpdate: IModelPackage;
         const packAlt = new db.models.PackageVersion({
           name: pack.name,
           archive: 'asdf',
@@ -423,10 +423,10 @@ describe('ModelPackageCollection', () => {
 
         async.parallel([
           (callback) => {
-            packCol.save((err, result: IModelPackageCollection) => {
+            packCol.save((err, result: IModelPackage) => {
               expect(err).to.not.be.ok;
-              expect(result.packages).to.be.ok;
-              expect(result.packages.length).to.equal(1);
+              expect(result.versions).to.be.ok;
+              expect(result.versions.length).to.equal(1);
               packColUpdate = result;
               callback();
             });
@@ -438,12 +438,12 @@ describe('ModelPackageCollection', () => {
             });
           },
         ], () => {
-          packColUpdate.packages.push(packAlt);
+          packColUpdate.versions.push(packAlt);
           packColUpdate.save((err) => {
             expect(err).to.be.ok;
             expect(err.errors).to.be.ok;
-            expect(err.errors.packages).to.be.ok;
-            expect(err.errors.packages.message).to.contain('additional packages must have a unique name');
+            expect(err.errors.versions).to.be.ok;
+            expect(err.errors.versions.message).to.contain('additional versions must have a unique name');
             done();
           });
         });

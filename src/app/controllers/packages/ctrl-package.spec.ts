@@ -111,17 +111,17 @@ describe('CtrlPackage', () => {
             expect(err).to.not.be.ok;
 
             expect(res.body).to.haveOwnProperty('name');
-            expect(res.body).to.haveOwnProperty('packages');
+            expect(res.body).to.haveOwnProperty('versions');
 
             expect(res.body).to.haveOwnProperty('author');
             expect(res.body.author).to.haveOwnProperty('id');
             expect(res.body.author.id).to.equal(user.id);
 
-            expect(res.body.packages).to.be.ok;
-            expect(res.body.packages.length).to.equal(1);
-            expect(res.body.packages[0]).to.haveOwnProperty('name');
-            expect(res.body.packages[0]).to.haveOwnProperty('archive');
-            expect(res.body.packages[0]).to.haveOwnProperty('description');
+            expect(res.body.versions).to.be.ok;
+            expect(res.body.versions.length).to.equal(1);
+            expect(res.body.versions[0]).to.haveOwnProperty('name');
+            expect(res.body.versions[0]).to.haveOwnProperty('archive');
+            expect(res.body.versions[0]).to.haveOwnProperty('description');
             done();
           });
       });
