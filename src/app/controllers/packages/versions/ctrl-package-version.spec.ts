@@ -5,6 +5,7 @@ import { appConfig } from '../../../helpers/app-config';
 import * as chai from 'chai';
 import { CtrlPackageVersion } from './ctrl-package-version';
 import { fileHelper } from '../../../helpers/file-creator';
+import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
 const expect = chai.expect;
 
 describe('CtrlPackageVersion', () => {
@@ -103,6 +104,94 @@ describe('CtrlPackageVersion', () => {
         xit('should fail if the file size is over 5mb large', () => {
           console.log('placeholder');
         });
+      });
+    });
+
+    describe('cleanVersions', () => {
+      it('should return an array of versions', () => {
+        const versions: IPackageVersionData[] = [
+          {
+            name: 'name',
+            archive: 'archive',
+            description: 'description',
+          },
+          {
+            name: 'asdf',
+            archive: 'asdf',
+            description: 'asdf',
+          },
+        ];
+
+        const cleaned = ctrl.cleanVersions(versions);
+
+        expect(cleaned.length).eq(2);
+        expect(cleaned[0].name).eq('name');
+        expect(cleaned[0].archive).eq('archive');
+        expect(cleaned[0].description).eq('description');
+      });
+
+      it('should not inject an empty description', () => {
+        const versions: IPackageVersionData[] = [
+          {
+            name: 'name',
+            archive: 'archive',
+          },
+        ];
+
+        const cleaned = ctrl.cleanVersions(versions);
+
+        expect(cleaned[0]).to.not.haveOwnProperty('description');
+      });
+
+      it('should return an empty array on an empty argument', () => {
+        const versions: any = null;
+
+        const cleaned = ctrl.cleanVersions(versions);
+
+        expect(cleaned).to.be.ok;
+        expect(cleaned.length).eq(0);
+      });
+
+      it('should remove undefined and null array elements', () => {
+        const empty: any = null;
+        const emptyB: any = undefined;
+
+        const versions: IPackageVersionData[] = [
+          {
+            name: 'name',
+            archive: 'archive',
+            description: 'description',
+          },
+          empty,
+          emptyB,
+        ];
+
+        const cleaned = ctrl.cleanVersions(versions);
+
+        expect(cleaned.length).eq(1);
+        expect(cleaned[0].name).eq('name');
+        expect(cleaned[0].archive).eq('archive');
+        expect(cleaned[0].description).eq('description');
+      });
+
+      it('should convert object properties to corresponding types', () => {
+        const num: any = 12345;
+        const str: string = num.toString();
+
+        const versions: IPackageVersionData[] = [
+          {
+            name: num,
+            archive: num,
+            description: num,
+          },
+        ];
+
+        const cleaned = ctrl.cleanVersions(versions);
+
+        expect(cleaned.length).eq(1);
+        expect(cleaned[0].name).eq(str);
+        expect(cleaned[0].archive).eq(str);
+        expect(cleaned[0].description).eq(str);
       });
     });
   });

@@ -13,6 +13,38 @@ export class CtrlPackageVersion {
   constructor (private db: Database) {
   }
 
+  /**
+   * Clean out versions to prevent potential NoSQL injections
+   * @param {[IPackageVersionData]} array
+   * @returns {[IPackageVersionData]}
+   */
+  public cleanVersions (array: IPackageVersionData[]) {
+    const versions: IPackageVersionData[] = [];
+
+    if (!array) {
+      return versions;
+    }
+
+    array.forEach((v) => {
+      if (!v) {
+        return;
+      }
+
+      const newV: IPackageVersionData = {
+        name: v.name.toString(),
+        archive: v.archive.toString(),
+      };
+
+      if (v.description) {
+        newV.description = v.description.toString();
+      }
+
+      versions.push(newV);
+    });
+
+    return versions;
+  }
+
   public create (data: IPackageVersionData, done: (err?: Error, result?: IModelPackageVersion) => void) {
     const version = new this.db.models.PackageVersion(data);
     const err = version.validateSync();
