@@ -32,7 +32,7 @@ export class CtrlPackage {
       return;
     }
 
-    this.db.models.PackageCollection.findOne({ name: pack.name }, (err, result) => {
+    this.db.models.Package.findOne({ name: pack.name }, (err, result) => {
       if (err) {
         res.status(400)
           .json(err);
@@ -74,7 +74,7 @@ export class CtrlPackage {
         },
         (callback) => {
           // Verify package can be created
-          const newPack = new this.db.models.PackageCollection({
+          const newPack = new this.db.models.Package({
             name: pack.name,
             author: user.id,
             versions,
@@ -110,7 +110,7 @@ export class CtrlPackage {
         }
 
         if (savedPack) {
-          this.db.models.PackageCollection.findByIdAndRemove(savedPack, (errVersion) => {
+          this.db.models.Package.findByIdAndRemove(savedPack, (errVersion) => {
             if (errVersion) {
               console.error(errVersion);
             }

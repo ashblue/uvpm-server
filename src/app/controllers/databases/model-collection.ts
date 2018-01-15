@@ -10,15 +10,15 @@ import { IModelPackageVersion } from '../../models/package/version/i-model-packa
 export class ModelCollection {
   public static readonly USER_ID = 'user';
   public static readonly PACKAGE_VERSION_ID = 'packageVersion';
-  public static readonly PACKAGE_COLLECTION_ID = 'packageCollection';
+  public static readonly PACKAGE_ID = 'package';
 
   public readonly User: mongoose.Model<IModelUser>;
-  public readonly PackageCollection: mongoose.Model<IModelPackage>;
+  public readonly Package: mongoose.Model<IModelPackage>;
   public readonly PackageVersion: mongoose.Model<IModelPackageVersion>;
 
   constructor (db: Database) {
     this.User = db.connection.model(ModelCollection.USER_ID, new ModelUserSchema().schema);
+    this.Package = db.connection.model(ModelCollection.PACKAGE_ID, new ModelPackageSchema(db.connection).schema);
     this.PackageVersion = db.connection.model(ModelCollection.PACKAGE_VERSION_ID, new ModelPackageVersionSchema().schema);
-    this.PackageCollection = db.connection.model(ModelCollection.PACKAGE_COLLECTION_ID, new ModelPackageSchema(db.connection).schema);
   }
 }

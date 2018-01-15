@@ -78,7 +78,7 @@ describe('ModelPackageSchema', () => {
   });
 
   it('should create a new item', (done) => {
-    const entry = new db.models.PackageCollection({
+    const entry = new db.models.Package({
       name: 'my-package',
       author: owner.id,
       versions: [pack.id],
@@ -102,7 +102,7 @@ describe('ModelPackageSchema', () => {
   });
 
   it('should delete all package versions when deleted', (done) => {
-    const entry = new db.models.PackageCollection({
+    const entry = new db.models.Package({
       name: 'my-package',
       author: owner.id,
       versions: [pack.id],
@@ -137,13 +137,13 @@ describe('ModelPackageSchema', () => {
     describe('name', () => {
       it('should have this property', () => {
         const details = getPackageData();
-        const entry: IModelPackage = new db.models.PackageCollection(details);
+        const entry: IModelPackage = new db.models.Package(details);
 
         expect(entry.name).to.be.ok;
       });
 
       it('should be required upon validation', (done) => {
-        const entry = new db.models.PackageCollection({});
+        const entry = new db.models.Package({});
 
         entry.validate((err) => {
           expect(err.errors).to.be.ok;
@@ -153,7 +153,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should reject an empty string', (done) => {
-        const entry: IModelPackage = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.Package({
           name: '',
         });
 
@@ -165,7 +165,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should reject a null value', (done) => {
-        const entry: IModelPackage = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.Package({
           name: null,
         });
 
@@ -177,7 +177,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should reject an undefined value', (done) => {
-        const entry: IModelPackage = new db.models.PackageCollection({
+        const entry: IModelPackage = new db.models.Package({
           name: undefined,
         });
 
@@ -189,7 +189,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow letters', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData());
+        const entry = new db.models.Package(getPackageData());
 
         entry.validate((err) => {
           expect(err).to.not.be.ok;
@@ -198,7 +198,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow uppercase letters', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: 'ASDF',
         }));
 
@@ -210,7 +210,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow numbers', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: '12345',
         }));
 
@@ -221,7 +221,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow numbers with text', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: 'asdf12345',
         }));
 
@@ -232,7 +232,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow dashes with numbers', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: '12345-1234',
         }));
 
@@ -243,7 +243,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow dashes with text', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: 'asdf-asdf-fdsa',
         }));
 
@@ -254,7 +254,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should allow dashes with numbers and text', (done) => {
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name: 'asdf-12345',
         }));
 
@@ -265,7 +265,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow dashes without text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.Package({
           name: '-',
         });
 
@@ -276,7 +276,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow double dashes', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.Package({
           name: 'asdf--asdf',
           owner,
         });
@@ -288,7 +288,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow dashes on the beginning of text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.Package({
           name: '-asdf',
         });
 
@@ -299,7 +299,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow dashes on the end of text', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.Package({
           name: 'asdf-',
           owner,
         });
@@ -311,7 +311,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should reject all characters that aren\'t spaces or dashes', (done) => {
-        const entry = new db.models.PackageCollection({
+        const entry = new db.models.Package({
           name: 'asdf@34jsdfkjl23-&456548a*',
           owner,
         });
@@ -324,8 +324,8 @@ describe('ModelPackageSchema', () => {
 
       it('should not validate if another package collection has the same name', (done) => {
         const name = 'asdf-asdf';
-        const entry = new db.models.PackageCollection(getPackageData({ name }));
-        const entry2 = new db.models.PackageCollection(getPackageData({ name }));
+        const entry = new db.models.Package(getPackageData({ name }));
+        const entry2 = new db.models.Package(getPackageData({ name }));
 
         entry.save((err) => {
           expect(err).to.be.not.ok;
@@ -339,7 +339,7 @@ describe('ModelPackageSchema', () => {
       it('should not allow the package name to change on update', (done) => {
         const name = 'asdf-asdf';
         const newName = 'asdf';
-        const entry = new db.models.PackageCollection(getPackageData({
+        const entry = new db.models.Package(getPackageData({
           name,
         }));
 
@@ -358,7 +358,7 @@ describe('ModelPackageSchema', () => {
 
     describe('author', () => {
       it('should have an author property', (done) => {
-        const packCol = new db.models.PackageCollection(getPackageData({
+        const packCol = new db.models.Package(getPackageData({
           name: 'asdf',
           author: owner,
         }));
@@ -373,7 +373,7 @@ describe('ModelPackageSchema', () => {
       it('should be required upon creation', (done) => {
         const data = getPackageData();
         delete data['author'];
-        const packCol = new db.models.PackageCollection(data);
+        const packCol = new db.models.Package(data);
 
         packCol.validate((err) => {
           expect(err).to.be.ok;
@@ -383,7 +383,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow null', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.Package({
           name: 'asdf',
           author: null,
         });
@@ -396,7 +396,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow undefined', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.Package({
           name: 'asdf',
           author: undefined,
         });
@@ -409,7 +409,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should not allow a fake owner ID', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.Package({
           name: 'asdf',
           author: owner._id + 1,
         });
@@ -422,7 +422,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should accept an ID', (done) => {
-        const packCol = new db.models.PackageCollection(getPackageData({
+        const packCol = new db.models.Package(getPackageData({
           name: 'asdf',
           author: owner.id,
         }));
@@ -437,7 +437,7 @@ describe('ModelPackageSchema', () => {
 
     describe('versions', () => {
       it('should have a list of versions', (done) => {
-        const packCol = new db.models.PackageCollection(getPackageData());
+        const packCol = new db.models.Package(getPackageData());
 
         packCol.save((err, result: IModelPackage) => {
           expect(err).to.not.be.ok;
@@ -448,7 +448,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should require at least one created package to validate', (done) => {
-        const packCol = new db.models.PackageCollection({
+        const packCol = new db.models.Package({
           name: 'asdf',
           owner,
         });
@@ -464,7 +464,7 @@ describe('ModelPackageSchema', () => {
       });
 
       it('should require that new versions have a unique name for the current collection', (done) => {
-        const packCol = new db.models.PackageCollection(getPackageData());
+        const packCol = new db.models.Package(getPackageData());
         let packColUpdate: IModelPackage;
         const packAlt = new db.models.PackageVersion({
           name: pack.name,
