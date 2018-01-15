@@ -17,7 +17,7 @@
       false
     ],
     "object-literal-sort-keys": false,
-    "no-shadowed-variable": false,
+    "no-shadowed-variable": true,
     "no-string-literal": false,
     "ordered-imports": false,
     "object-curly-spacing": true,

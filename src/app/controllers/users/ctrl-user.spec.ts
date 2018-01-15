@@ -230,9 +230,9 @@ describe('CtrlUser', () => {
               .set('Authorization', 'Bearer ' + token)
               .expect('Content-Type', /json/)
               .expect(200)
-              .end((err, res) => {
-                expect(err).to.not.be.ok;
-                expect(res.body.message).to.contain('success');
+              .end((err2, res2) => {
+                expect(err2).to.not.be.ok;
+                expect(res2.body.message).to.contain('success');
                 done();
               });
           });
@@ -255,12 +255,12 @@ describe('CtrlUser', () => {
               .post('/users/login')
               .send(userData)
               .expect(200)
-              .end((err, res) => {
-                expect(err).to.not.be.ok;
-                expect(res.body).to.haveOwnProperty('user');
+              .end((err2, res2) => {
+                expect(err2).to.not.be.ok;
+                expect(res2.body).to.haveOwnProperty('user');
 
-                token = `Bearer ${res.body.token}`;
-                user = res.body.user;
+                token = `Bearer ${res2.body.token}`;
+                user = res2.body.user;
                 done();
               });
           });
@@ -314,17 +314,17 @@ describe('CtrlUser', () => {
                 password: 'asdfasd1',
               })
               .expect(200)
-              .end((err, res) => {
-                const token2 = `Bearer ${res.body.token}`;
+              .end((err2, res2) => {
+                const token2 = `Bearer ${res2.body.token}`;
 
                 request(app)
                   .put(`/users/${user.id}`)
                   .set('Authorization', token2)
                   .send({ name: 'fdsa' })
                   .expect(401)
-                  .end((err, res) => {
-                    expect(err).to.not.be.ok;
-                    expect(res.body.message).to.contain('Access denied');
+                  .end((err3, res3) => {
+                    expect(err3).to.not.be.ok;
+                    expect(res3.body.message).to.contain('Access denied');
                     done();
                   });
               });

@@ -37,9 +37,9 @@ describe('ModelBase', () => {
     user.save((err, record) => {
       expect(err).to.be.null;
 
-      ModelUser.findById(record.id, (err, record) => {
-        expect(err).to.be.null;
-        expect(record).to.be.ok;
+      ModelUser.findById(record.id, (errFindById, result) => {
+        expect(errFindById).to.be.null;
+        expect(result).to.be.ok;
         done();
       });
     });
@@ -68,10 +68,10 @@ describe('ModelBase', () => {
 
         m.save((err, result: IModelUser) => {
           const name = result.name;
-          ModelUser.findByIdAndUpdate(m.id, { $set: { name: 'fdsa' } }, { new: true }, (err, result) => {
-            expect(result).to.be.ok;
-            if (result) {
-              expect(result.name).to.not.equal(name);
+          ModelUser.findByIdAndUpdate(m.id, { $set: { name: 'fdsa' } }, { new: true }, (errUpdate, updatedResult) => {
+            expect(updatedResult).to.be.ok;
+            if (updatedResult) {
+              expect(updatedResult.name).to.not.equal(name);
             }
 
             done();
@@ -137,9 +137,9 @@ describe('ModelBase', () => {
         user1.save((err) => {
           expect(err).to.be.null;
 
-          user2.save((err) => {
-            expect(err).to.not.be.undefined;
-            expect(err.errmsg).to.contain('duplicate key error');
+          user2.save((errUpdate) => {
+            expect(errUpdate).to.not.be.undefined;
+            expect(errUpdate.errmsg).to.contain('duplicate key error');
 
             done();
           });
@@ -212,13 +212,13 @@ describe('ModelBase', () => {
           password: validPassword,
         });
 
-        user.save((err, user) => {
+        user.save((err, userUpdated) => {
           expect(err).to.not.be.ok;
-          expect(user).to.be.ok;
+          expect(userUpdated).to.be.ok;
 
-          user._id = 'asdf';
-          user.save((err, user) => {
-            expect(err).to.be.ok;
+          userUpdated._id = 'asdf';
+          userUpdated.save((errUpdate) => {
+            expect(errUpdate).to.be.ok;
             done();
           });
         });

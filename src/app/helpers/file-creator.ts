@@ -16,9 +16,9 @@ export const fileHelper = {
     const bufferSize = new Buffer(1024 * 1024 * sizeMb);
 
     tmp.file((err, path, fd, cleanupCallback) => {
-      fs.writeFile(path, bufferSize, 'utf8', (err) => {
-        if (err) {
-          console.error(err);
+      fs.writeFile(path, bufferSize, 'utf8', (errWrite) => {
+        if (errWrite) {
+          console.error(errWrite);
           cleanupCallback();
           done('');
           return;
@@ -34,9 +34,9 @@ export const fileHelper = {
 
   createBase64FileText: (text: string, done: (base64: string) => void) => {
     tmp.file((err, path, fd, cleanupCallback) => {
-      fs.writeFile(path, text, 'utf8', (err) => {
-        if (err) {
-          console.error(err);
+      fs.writeFile(path, text, 'utf8', (errWrite) => {
+        if (errWrite) {
+          console.error(errWrite);
           cleanupCallback();
           done('');
           return;

@@ -35,18 +35,18 @@ export class CtrlUser {
       email: req.body.email,
       password: req.body.password,
     });
-    user.save((err, user) => {
+    user.save((err, user2) => {
       if (err) {
         res.status(500).json(err);
         return;
       }
 
-      if (user == null) {
+      if (user2 == null) {
         res.status(500).json({ message: 'Could not generate user' });
         return;
       }
 
-      res.json(user);
+      res.json(user2);
     });
   }
 
@@ -54,8 +54,8 @@ export class CtrlUser {
     const email = req.body.email;
     const password = req.body.password;
 
-    const user = this.db.models.User;
-    user.findOne({ email, password }, (err, user) => {
+    const userModel = this.db.models.User;
+    userModel.findOne({ email, password }, (err, user) => {
       if (err) {
         res.status(401).json(err);
         return;

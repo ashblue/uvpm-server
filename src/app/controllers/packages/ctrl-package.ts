@@ -41,12 +41,12 @@ export class CtrlPackage {
 
       if (!result) {
         this.create(pack, user)
-          .then((result) => {
-            res.json(result);
+          .then((result2) => {
+            res.json(result2);
           })
-          .catch((err) => {
+          .catch((err2) => {
             res.status(400)
-              .json(err);
+              .json(err2);
           });
       } else {
         res.status(400)

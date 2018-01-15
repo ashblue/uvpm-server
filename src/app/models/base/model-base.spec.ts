@@ -59,8 +59,8 @@ describe('ModelBase', () => {
           expect(err).to.be.null;
 
           entry.createdAt = new Date(0);
-          entry.save((err, entry) => {
-            err.toString().should.contain('createdAt cannot be modified');
+          entry.save((errSave) => {
+            errSave.toString().should.contain('createdAt cannot be modified');
             done();
           });
         });

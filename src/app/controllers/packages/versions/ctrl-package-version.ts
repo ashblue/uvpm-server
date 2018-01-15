@@ -111,16 +111,16 @@ export class CtrlPackageVersion {
 
     const filePath = `${path}/${uuidv4()}`;
 
-    fs.writeFile(filePath, fileDecode, (err) => {
-      if (err) {
-        console.error(err);
-        done(err);
+    fs.writeFile(filePath, fileDecode, (err2) => {
+      if (err2) {
+        console.error(err2);
+        done(err2);
         return;
       }
 
       version.archive = filePath;
-      version.save((err, result) => {
-        done(err, result);
+      version.save((err3, result) => {
+        done(err3, result);
       });
     });
   }

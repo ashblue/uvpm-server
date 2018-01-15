@@ -329,8 +329,8 @@ describe('ModelPackageSchema', () => {
 
         entry.save((err) => {
           expect(err).to.be.not.ok;
-          entry2.save((err) => {
-            expect(err).to.be.ok;
+          entry2.save((errUpdate) => {
+            expect(errUpdate).to.be.ok;
             done();
           });
         });
@@ -347,8 +347,8 @@ describe('ModelPackageSchema', () => {
           expect(err).to.be.not.ok;
 
           entry.name = newName;
-          entry.save((err, result) => {
-            expect(err).to.be.ok;
+          entry.save((errUpdate, result) => {
+            expect(errUpdate).to.be.ok;
             expect(result).to.be.undefined;
             done();
           });

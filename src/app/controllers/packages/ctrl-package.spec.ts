@@ -80,12 +80,12 @@ describe('CtrlPackage', () => {
                 .post('/api/v1/users/login')
                 .send(userDetails)
                 .expect(200)
-                .end((err, res) => {
-                  expect(err).to.not.be.ok;
-                  expect(res.body).to.haveOwnProperty('user');
+                .end((err2, res2) => {
+                  expect(err2).to.not.be.ok;
+                  expect(res2.body).to.haveOwnProperty('user');
 
-                  token = `Bearer ${res.body.token}`;
-                  user = res.body.user;
+                  token = `Bearer ${res2.body.token}`;
+                  user = res2.body.user;
 
                   callback();
                 });
@@ -151,8 +151,8 @@ describe('CtrlPackage', () => {
               })
               .expect('Content-Type', /json/)
               .expect(400)
-              .end((err, res) => {
-                expect(err).to.not.be.ok;
+              .end((err2, res) => {
+                expect(err2).to.not.be.ok;
                 expect(res.body.message).contains('Name already in use');
 
                 done();
