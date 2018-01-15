@@ -63,5 +63,13 @@ describe('App', () => {
 
       assert.equal(app.port, 3000);
     });
+
+    xit('should create a public folder if it does not exist', () => {
+      console.log('placeholder');
+    });
+
+    xit('should set the public folder to readable', () => {
+      console.log('placeholder');
+    });
   });
 });

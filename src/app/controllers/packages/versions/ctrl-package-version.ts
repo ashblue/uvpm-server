@@ -1,9 +1,6 @@
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 import { Database } from '../../databases/database';
 import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
-import * as fs from 'fs';
-import { appConfig } from '../../../helpers/app-config';
-import uuidv4 = require('uuid/v4');
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
@@ -84,44 +81,8 @@ export class CtrlPackageVersion {
       return;
     }
 
-    let fileDecode: Buffer;
-    try {
-      fileDecode = Buffer.from(version.archive, 'base64');
-    } catch (e) {
-      console.error(e);
-      done(new Error('Could not decode the archive. Must be base64 encoded'));
-      return;
-    }
-
-    // @TODO Move all file creation to the model itself (auto-generates this)
-    if (!fs.existsSync(appConfig.PUBLIC_FOLDER)) {
-      fs.mkdirSync(appConfig.PUBLIC_FOLDER);
-    }
-
-    let path: string;
-    if (appConfig.isEnvTest()) {
-      path = appConfig.FILE_FOLDER_TEST;
-    } else {
-      path = appConfig.FILE_FOLDER;
-    }
-
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path);
-    }
-
-    const filePath = `${path}/${uuidv4()}`;
-
-    fs.writeFile(filePath, fileDecode, (err2) => {
-      if (err2) {
-        console.error(err2);
-        done(err2);
-        return;
-      }
-
-      version.archive = filePath;
-      version.save((err3, result) => {
-        done(err3, result);
-      });
+    version.save((errSave, result) => {
+      done(errSave, result);
     });
   }
 }

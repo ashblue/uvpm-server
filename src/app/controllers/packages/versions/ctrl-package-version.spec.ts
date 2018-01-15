@@ -81,31 +81,6 @@ describe('CtrlPackageVersion', () => {
           done();
         });
       });
-
-      // @TODO Move all file handling onto the version model
-      describe('file handling', () => {
-        xit('should convert the archive to a full http code when returned', () => {
-          // @TODO This should be done at the model level on JSON convert
-          // @TODO The http prepend should only trigger if not an absolute URL
-          console.log('placeholder');
-        });
-
-        xit('should place the file in public/tmp-files', () => {
-          console.log('placeholder');
-        });
-
-        xit('writes files to the public/files folder if out of test mode', () => {
-          console.log('placeholder');
-        });
-
-        xit('should provide a working http address to download the file', () => {
-          console.log('placeholder');
-        });
-
-        xit('should fail if the file size is over 5mb large', () => {
-          console.log('placeholder');
-        });
-      });
     });
 
     describe('sanitize', () => {
@@ -230,12 +205,12 @@ describe('CtrlPackageVersion', () => {
           expect(savedVersions.length).eq(2);
 
           expect(savedVersions[0].name).eq('name');
-          expect(savedVersions[0].archive).eq('archive');
+          expect(savedVersions[0].archive).to.not.eq('archive');
           expect(savedVersions[0].description).eq('description');
           expect(savedVersions[0]._id).to.be.ok;
 
           expect(savedVersions[1].name).eq('asdf');
-          expect(savedVersions[1].archive).eq('asdf');
+          expect(savedVersions[1].archive).to.not.eq('asdf');
           expect(savedVersions[1].description).to.not.be.ok;
           expect(savedVersions[1]._id).to.be.ok;
 

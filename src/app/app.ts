@@ -17,6 +17,7 @@ export class App {
     this.express = express();
     this.express.use(bodyParser.json({ limit: '10mb' }));
     this.express.use(passport.initialize());
+    this.express.use(express.static('public'));
 
     if (logs) {
       this.express.use(this.logRequest);
