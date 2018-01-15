@@ -3,9 +3,11 @@ import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
 import * as async from 'async';
 import { Database } from '../databases/database';
 import { CtrlPackageVersion } from './versions/ctrl-package-version';
-import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { ModelCollection } from '../databases/model-collection';
+import { IModelUser } from '../../models/user/i-model-user';
+import { IPackageData } from '../../models/package/i-package-data';
+import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 
 export class CtrlPackage {
   private versions: CtrlPackageVersion;
@@ -14,120 +16,121 @@ export class CtrlPackage {
     this.versions = new CtrlPackageVersion(this.db);
   }
 
-  public create = (req: IExpressRequest, res: express.Response) => {
-    const user = req.user;
+  public httpPost = (req: IExpressRequest, res: express.Response) => {
+    const pack: IPackageData = req.body;
+    const user = req.user as IModelUser;
+
+    if (!pack.name) {
+      res.status(400)
+        .json({ message: 'Package name is required' });
+      return;
+    }
 
     if (!user) {
-      res.status(400)
+      res.status(401)
         .json({ message: 'Authentication is required' });
       return;
     }
 
-    // Trigger this early to prevent accidentally creating a new file from the data
-    if (!req.body.name) {
-      res.status(400)
-        .json({ message: 'Name is required' });
-    }
-
-    let version: IModelPackageVersion;
-    let pack: IModelPackage;
-
-    async.series([
-      (callback) => {
-        // Verify name isn't already taken
-        this.db.models.PackageCollection.findOne({ name: req.body.name }, (err, result) => {
-          if (err) {
-            callback(err);
-            return;
-          }
-
-          if (!result) {
-            callback(undefined);
-          } else {
-            callback({ message: 'Name already in use. Please choose another' });
-          }
-        });
-      },
-      (callback) => {
-        // Verify name can be created
-        this.versions.create({
-          name: req.body.version,
-          archive: req.body.archive,
-          description: req.body.description,
-        }, (err, result) => {
-          if (result) {
-            version = result;
-          }
-
-          callback(err);
-        });
-      },
-      (callback) => {
-        // Verify package can be created
-        const newPack = new this.db.models.PackageCollection({
-          name: req.body.name,
-          author: user.id,
-          versions: [version.id],
-        });
-
-        newPack.save((err, result) => {
-          pack = result;
-          callback(err);
-        });
-      },
-      (callback) => {
-        pack.populate([
-          {
-            path: 'versions',
-            model: ModelCollection.PACKAGE_VERSION_ID,
-          },
-          {
-            path: 'author',
-          },
-        ], (err, result) => {
-          if (err) {
-            callback(err);
-            return;
-          }
-
-          res.json(result);
-          callback(undefined);
-        });
-      },
-    ], (err) => {
-      if (!err) {
+    this.db.models.PackageCollection.findOne({ name: pack.name }, (err, result) => {
+      if (err) {
+        res.status(400)
+          .json(err);
         return;
       }
 
-      // Run data cleanup to prevent object leaks in the database
+      if (!result) {
+        this.create(pack, user)
+          .then((result) => {
+            res.json(result);
+          })
+          .catch((err) => {
+            res.status(400)
+              .json(err);
+          });
+      } else {
+        res.status(400)
+          .json({ message: 'Could not create. Name already in use. Please choose another' });
+      }
+    });
+  }
+
+  public create (pack: IPackageData, user: IModelUser): Promise<IModelPackage> {
+    return new Promise<IModelPackage>((resolve, reject) => {
+      // Convert all package data to versions
+      let versions: IModelPackageVersion[];
+      let savedPack: IModelPackage;
+
       async.series([
         (callback) => {
-          if (!version) {
-            callback();
-            return;
-          }
+          this.versions.createMany(pack.versions)
+            .then((results) => {
+              versions = results;
+              callback(undefined);
+            })
+            .catch((err) => {
+              callback(err);
+            });
+        },
+        (callback) => {
+          // Verify package can be created
+          const newPack = new this.db.models.PackageCollection({
+            name: pack.name,
+            author: user.id,
+            versions,
+          });
 
-          this.db.models.PackageVersion.findByIdAndRemove(version, (errPack) => {
-            callback(errPack);
+          newPack.save((err, result) => {
+            savedPack = result;
+            callback(err);
           });
         },
         (callback) => {
-          if (!pack) {
-            callback();
-            return;
-          }
+          savedPack.populate([
+            {
+              path: 'versions',
+              model: ModelCollection.PACKAGE_VERSION_ID,
+            },
+            {
+              path: 'author',
+            },
+          ], (err, result) => {
+            if (err) {
+              callback(err);
+              return;
+            }
 
-          this.db.models.PackageCollection.findByIdAndRemove(pack, (errVersion) => {
-            callback(errVersion);
+            resolve(result);
+            callback(undefined);
           });
         },
-      ], (errFinal) => {
-        if (errFinal) {
-          console.error(errFinal);
+      ], (err) => {
+        if (!err) {
+          return;
         }
 
-        res.status(400)
-          .json(err);
+        if (savedPack) {
+          this.db.models.PackageCollection.findByIdAndRemove(savedPack, (errVersion) => {
+            if (errVersion) {
+              console.error(errVersion);
+            }
+
+            reject(err);
+          });
+        } else if (versions) {
+          const versionIds = versions.map((v) => v._id);
+          this.db.models.PackageVersion.remove({
+            _id: { $in: versionIds },
+          }, (err2) => {
+            if (err2) {
+              console.error(err2);
+            }
+
+            reject(err);
+          });
+        } else {
+          reject(err);
+        }
       });
     });
   }

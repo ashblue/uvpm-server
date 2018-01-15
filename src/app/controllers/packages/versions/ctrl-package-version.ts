@@ -18,35 +18,65 @@ export class CtrlPackageVersion {
    * @param {[IPackageVersionData]} array
    * @returns {[IPackageVersionData]}
    */
-  public cleanVersions (array: IPackageVersionData[]) {
+  public sanitizeMany (array: IPackageVersionData[]) {
     const versions: IPackageVersionData[] = [];
 
-    if (!array) {
-      return versions;
+    if (!array || !Array.isArray(array)) {
+      return [];
     }
 
-    array.forEach((v) => {
-      if (!v) {
-        return;
-      }
-
-      const newV: IPackageVersionData = {
-        name: v.name.toString(),
-        archive: v.archive.toString(),
-      };
-
-      if (v.description) {
-        newV.description = v.description.toString();
-      }
-
-      versions.push(newV);
-    });
+    array
+      .filter((v) => {
+        return v;
+      })
+      .forEach((v) => {
+        versions.push(this.sanitize(v));
+      });
 
     return versions;
   }
 
+  public sanitize (v: IPackageVersionData): IPackageVersionData {
+    if (!v) {
+      return v;
+    }
+
+    const newV: IPackageVersionData = {
+      name: v.name,
+      archive: v.archive,
+    };
+
+    if (newV.name) {
+      newV.name = newV.name.toString();
+    }
+
+    if (newV.archive) {
+      newV.archive = newV.archive.toString();
+    }
+
+    if (v.description) {
+      newV.description = v.description.toString();
+    }
+
+    return newV;
+  }
+
+  public createMany (array: IPackageVersionData[]): Promise<IModelPackageVersion[]> {
+    return new Promise<IModelPackageVersion[]>((resolve, reject) => {
+      const versions = this.sanitizeMany(array);
+      this.db.models.PackageVersion.create(versions, (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        resolve(res);
+      });
+    });
+  }
+
   public create (data: IPackageVersionData, done: (err?: Error, result?: IModelPackageVersion) => void) {
-    const version = new this.db.models.PackageVersion(data);
+    const version = new this.db.models.PackageVersion(this.sanitize(data));
     const err = version.validateSync();
 
     if (err) {

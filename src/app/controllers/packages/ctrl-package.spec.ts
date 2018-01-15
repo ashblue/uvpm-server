@@ -5,6 +5,7 @@ import { IModelUser } from '../../models/user/i-model-user';
 import { App } from '../../app';
 import * as async from 'async';
 import { fileHelper } from '../../helpers/file-creator';
+import { IPackageData } from '../../models/package/i-package-data';
 
 const expect = chai.expect;
 
@@ -47,9 +48,10 @@ describe('CtrlPackage', () => {
 
     beforeEach((done) => {
       ctrl = new CtrlPackage(app.db);
+
       app.express.post(routePackages, (req, res, next) => {
         app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
-          ctrl.create(req, res);
+          ctrl.httpPost(req, res);
         });
       });
 
@@ -94,112 +96,42 @@ describe('CtrlPackage', () => {
       });
     });
 
-    describe('create', () => {
-      it('should create a new package with a name', (done) => {
+    describe('httpPost', () => {
+      it('should receive a package model on success', (done) => {
         request(app.express)
           .post(routePackages)
           .set('Authorization', token)
           .send({
             name: 'asdf',
-            version: '1.0.0',
-            archive: fileBase64,
-            description: 'My description',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
           })
           .expect('Content-Type', /json/)
           .expect(200)
           .end((err, res) => {
             expect(err).to.not.be.ok;
 
-            expect(res.body).to.haveOwnProperty('name');
-            expect(res.body).to.haveOwnProperty('versions');
+            expect(res.body).to.be.ok;
+            expect(res.body.id).to.be.ok;
 
-            expect(res.body).to.haveOwnProperty('author');
-            expect(res.body.author).to.haveOwnProperty('id');
-            expect(res.body.author.id).to.equal(user.id);
-
-            expect(res.body.versions).to.be.ok;
-            expect(res.body.versions.length).to.equal(1);
-            expect(res.body.versions[0]).to.haveOwnProperty('name');
-            expect(res.body.versions[0]).to.haveOwnProperty('archive');
-            expect(res.body.versions[0]).to.haveOwnProperty('description');
             done();
           });
       });
 
-      it('should fail if the user isn\'t authenticated', (done) => {
-        request(app.express)
-          .post(routePackages)
-          .send({
-            name: 'asdf',
-          })
-          .expect('Content-Type', /json/)
-          .expect(401)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
-            expect(res.body.message).to.contain('Authentication failed');
-            done();
-          });
-      });
-
-      it('should fail if a name is not provided', (done) => {
-        request(app.express)
-          .post(routePackages)
-          .set('Authorization', token)
-          .send({
-            version: '1.0.0',
-            archive: 'FILE',
-          })
-          .expect('Content-Type', /json/)
-          .expect(400)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
-            expect(res.body.message).to.contain('Name is required');
-            done();
-          });
-      });
-
-      it('should fail if a file is not provided', (done) => {
+      it('should return an error if the name is already in use', (done) => {
         request(app.express)
           .post(routePackages)
           .set('Authorization', token)
           .send({
             name: 'asdf',
-            version: '1.0.0',
-          })
-          .expect('Content-Type', /json/)
-          .expect(400)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
-            expect(res.body.errors.archive.message).to.contain('Version archive is required');
-            done();
-          });
-      });
-
-      it('should fail if a version is not provided', (done) => {
-        request(app.express)
-          .post(routePackages)
-          .set('Authorization', token)
-          .send({
-            name: 'asdf',
-            file: 'FILE',
-          })
-          .expect('Content-Type', /json/)
-          .expect(400)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
-            expect(res.body.errors.name.message).to.contain('Version name is required');
-            done();
-          });
-      });
-
-      it('should fail if the name is already taken', (done) => {
-        request(app.express)
-          .post(routePackages)
-          .set('Authorization', token)
-          .send({
-            name: 'asdf',
-            version: '1.0.0',
-            archive: 'FILE_HERE',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
           })
           .expect('Content-Type', /json/)
           .expect(200)
@@ -211,8 +143,11 @@ describe('CtrlPackage', () => {
               .set('Authorization', token)
               .send({
                 name: 'asdf',
-                version: '1.0.0',
-                archive: 'FILE_HERE',
+                versions: [{
+                  name: '1.0.0',
+                  archive: 'asdf',
+                  description: 'My description',
+                }],
               })
               .expect('Content-Type', /json/)
               .expect(400)
@@ -222,6 +157,217 @@ describe('CtrlPackage', () => {
 
                 done();
               });
+          });
+      });
+
+      it('should error if the `package` name is missing', (done) => {
+        request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            version: '1.0.0',
+            archive: fileBase64,
+            description: 'My description',
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .end((err, res) => {
+            expect(err).to.not.be.ok;
+
+            expect(res.body).to.haveOwnProperty('message');
+            expect(res.body.message).to.contain('Package name is required');
+
+            done();
+          });
+      });
+
+      it('should error if the user is not authenticated', (done) => {
+        request(app.express)
+          .post(routePackages)
+          .send({
+            name: 'asdf',
+            version: '1.0.0',
+            archive: fileBase64,
+            description: 'My description',
+          })
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .end((err, res) => {
+            expect(err).to.not.be.ok;
+
+            expect(res.body).to.haveOwnProperty('message');
+            expect(res.body.message).to.contain('Authentication failed');
+
+            done();
+          });
+      });
+    });
+
+    describe('create', () => {
+      it('should fail gracefully if versions are empty', () => {
+        const data: any = {
+          name: 'asdf',
+          author: user,
+        };
+
+        return ctrl.create(data, user)
+          .then((res) => {
+            chai.assert.fail(0, 1, res.toString());
+          })
+          .catch((err) => {
+            expect(err).to.be.ok;
+            expect(err.errors.versions.message).to.contain('at least one version to initialize');
+          });
+      });
+
+      it('should create a new package with a nested version', () => {
+        const data: IPackageData = {
+          name: 'asdf',
+          author: user,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: fileBase64,
+              description: 'My description',
+            },
+          ],
+        };
+
+        return ctrl.create(data, user)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.id).to.be.ok;
+            expect(res.name).to.be.ok;
+
+            expect(res.author).to.be.ok;
+            expect(res.id).to.be.ok;
+            expect(res.author.id).to.equal(user.id);
+
+            expect(res.versions).to.be.ok;
+            expect(res.versions.length).to.equal(1);
+
+            expect(res.versions[0]).to.be.ok;
+            expect(res.versions[0].name).to.eq(data.versions[0].name);
+            expect(res.versions[0].archive).to.be.ok;
+            expect(res.versions[0].description).to.eq(data.versions[0].description);
+          })
+          .catch((err) => {
+            console.error(err);
+            chai.assert.fail(0, 1, err);
+          });
+      });
+
+      it('should be able to create multiple versions', () => {
+        const data: IPackageData = {
+          name: 'asdf',
+          author: user,
+          versions: [
+            {
+              name: '1.1.0',
+              archive: fileBase64,
+              description: 'My description',
+            },
+            {
+              name: '1.0.0',
+              archive: fileBase64,
+              description: 'My description',
+            },
+          ],
+        };
+
+        return ctrl.create(data, user)
+          .then((res) => {
+            expect(res).to.be.ok;
+
+            expect(res.id).to.be.ok;
+            expect(res.name).to.be.ok;
+            expect(res.author).to.be.ok;
+
+            expect(res.versions).to.be.ok;
+            expect(res.versions.length).to.equal(2);
+
+            expect(res.versions[0]).to.be.ok;
+            expect(res.versions[0].name).to.eq(data.versions[0].name);
+            expect(res.versions[0].archive).to.be.ok;
+            expect(res.versions[0].description).to.eq(data.versions[0].description);
+
+            expect(res.versions[1]).to.be.ok;
+            expect(res.versions[1].name).to.eq(data.versions[1].name);
+            expect(res.versions[1].archive).to.be.ok;
+            expect(res.versions[1].description).to.eq(data.versions[1].description);
+          })
+          .catch((err) => {
+            console.error(err);
+            chai.assert.fail(0, 1, err);
+          });
+      });
+
+      it('should delete all versions if package creation fails', (done) => {
+        const data: IPackageData = {
+          name: 'as@#@#$@#$@#df',
+          author: user,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: fileBase64,
+              description: 'My description',
+            },
+          ],
+        };
+
+        ctrl.create(data, user)
+          .then((res) => {
+            chai.assert.fail(0, 1, res.toString());
+          })
+          .catch((err) => {
+            app.db.models.PackageVersion.find({}, (err2, res) => {
+              expect(res.length).to.eq(0);
+              done();
+            });
+          });
+      });
+
+      it('should fail if a file is not provided', () => {
+        const data: any = {
+          name: 'asdf',
+          author: user,
+          versions: [
+            {
+              name: '1.0.0',
+              description: 'My description',
+            },
+          ],
+        };
+
+        return ctrl.create(data, user)
+          .then((res) => {
+            chai.assert.fail(0, 1, res.toString());
+          })
+          .catch((err) => {
+            expect(err).to.be.ok;
+            expect(err.errors.archive.message).to.contain('Version archive is required');
+          });
+      });
+
+      it('should fail if a version is not provided', () => {
+        const data: any = {
+          name: 'asdf',
+          author: user,
+          versions: [
+            {
+              archive: 'asdf',
+              description: 'My description',
+            },
+          ],
+        };
+
+        return ctrl.create(data, user)
+          .then((res) => {
+            chai.assert.fail(0, 1, res.toString());
+          })
+          .catch((err) => {
+            expect(err).to.be.ok;
+            expect(err.errors.name.message).to.contain('Version name is required');
           });
       });
     });

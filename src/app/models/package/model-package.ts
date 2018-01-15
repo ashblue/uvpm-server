@@ -4,6 +4,7 @@ import { ModelBase } from '../base/model-base';
 import { Schema } from 'mongoose';
 import { ModelCollection } from '../../controllers/databases/model-collection';
 import { IModelPackageVersion } from './version/i-model-package-version';
+import { IModelPackage } from './i-model-package';
 
 export class ModelPackageSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
@@ -67,6 +68,28 @@ export class ModelPackageSchema extends ModelBase {
 
   constructor (private connection: mongoose.Connection) {
     super();
+
+    // Wipe out all corresponding package versions when deleted
+    this.schema.pre('remove', function (this: IModelPackage, next) {
+      const versionIds = this.versions
+        .filter((v) => {
+          return v !== undefined || v !== null;
+        })
+        .map((v) => {
+          return v;
+        });
+
+      const modelVersion = connection.model(ModelCollection.PACKAGE_VERSION_ID);
+      modelVersion.remove({
+        _id: { $in: versionIds },
+      }, (err) => {
+        if (err) {
+          console.error(err);
+        }
+
+        next();
+      });
+    });
   }
 
   protected onValidate (document: mongoose.Document, next): boolean {

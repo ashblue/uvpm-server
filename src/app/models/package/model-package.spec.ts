@@ -77,10 +77,60 @@ describe('ModelPackageSchema', () => {
     db.closeConnection(done);
   });
 
-  it('should create a new item', () => {
-    const entry = new db.models.PackageCollection({});
+  it('should create a new item', (done) => {
+    const entry = new db.models.PackageCollection({
+      name: 'my-package',
+      author: owner.id,
+      versions: [pack.id],
+    });
 
-    expect(entry).to.be.ok;
+    entry.save((err, result) => {
+      expect(err).to.not.be.ok;
+      expect(result).to.be.ok;
+
+      expect(result.name).to.be.ok;
+      expect(result.name).to.be.eq('my-package');
+
+      expect(result.author).to.be.ok;
+      expect(result.author.toString()).to.be.eq(owner.id);
+
+      expect(result.versions).to.be.ok;
+      expect(result.versions).to.contain(pack.id);
+
+      done();
+    });
+  });
+
+  it('should delete all package versions when deleted', (done) => {
+    const entry = new db.models.PackageCollection({
+      name: 'my-package',
+      author: owner.id,
+      versions: [pack.id],
+    });
+
+    let savedEntry: IModelPackage;
+    async.series([
+      (callback) => {
+        entry.save((err, product) => {
+          savedEntry = product;
+          callback(err);
+        });
+      },
+      (callback) => {
+        savedEntry.remove((err) => {
+          callback(err);
+        });
+      },
+      (callback) => {
+        db.models.PackageVersion.findById(pack.id, (err, res) => {
+          expect(res).to.not.be.ok;
+          callback(err);
+        });
+      },
+    ], (err, results) => {
+      expect(err).to.not.be.ok;
+      done();
+    });
   });
 
   describe('schema', () => {

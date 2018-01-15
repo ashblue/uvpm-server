@@ -82,6 +82,7 @@ describe('CtrlPackageVersion', () => {
         });
       });
 
+      // @TODO Move all file handling onto the version model
       describe('file handling', () => {
         xit('should convert the archive to a full http code when returned', () => {
           // @TODO This should be done at the model level on JSON convert
@@ -107,8 +108,23 @@ describe('CtrlPackageVersion', () => {
       });
     });
 
-    describe('cleanVersions', () => {
-      it('should return an array of versions', () => {
+    describe('sanitize', () => {
+      it('should return a cleaned version', () => {
+        const version: IPackageVersionData = {
+            name: 'name',
+            archive: 'archive',
+        };
+
+        const cleaned = ctrl.sanitize(version);
+
+        expect(cleaned.name).eq(version.name);
+        expect(cleaned.archive).eq(version.archive);
+        expect(cleaned.description).to.not.be.ok;
+      });
+    });
+
+    describe('sanitizeMany', () => {
+      it('should return an array of sanitized versions', () => {
         const versions: IPackageVersionData[] = [
           {
             name: 'name',
@@ -122,7 +138,7 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const cleaned = ctrl.cleanVersions(versions);
+        const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned.length).eq(2);
         expect(cleaned[0].name).eq('name');
@@ -138,7 +154,7 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const cleaned = ctrl.cleanVersions(versions);
+        const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned[0]).to.not.haveOwnProperty('description');
       });
@@ -146,7 +162,7 @@ describe('CtrlPackageVersion', () => {
       it('should return an empty array on an empty argument', () => {
         const versions: any = null;
 
-        const cleaned = ctrl.cleanVersions(versions);
+        const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned).to.be.ok;
         expect(cleaned.length).eq(0);
@@ -166,7 +182,7 @@ describe('CtrlPackageVersion', () => {
           emptyB,
         ];
 
-        const cleaned = ctrl.cleanVersions(versions);
+        const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned.length).eq(1);
         expect(cleaned[0].name).eq('name');
@@ -186,12 +202,45 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const cleaned = ctrl.cleanVersions(versions);
+        const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned.length).eq(1);
         expect(cleaned[0].name).eq(str);
         expect(cleaned[0].archive).eq(str);
         expect(cleaned[0].description).eq(str);
+      });
+    });
+
+    describe('createMany', () => {
+      it('should convert an array of objects to package version models with id', (done) => {
+        const versions: IPackageVersionData[] = [
+          {
+            name: 'name',
+            archive: 'archive',
+            description: 'description',
+          },
+          {
+            name: 'asdf',
+            archive: 'asdf',
+          },
+        ];
+
+        const promise = ctrl.createMany(versions);
+        promise.then((savedVersions) => {
+          expect(savedVersions.length).eq(2);
+
+          expect(savedVersions[0].name).eq('name');
+          expect(savedVersions[0].archive).eq('archive');
+          expect(savedVersions[0].description).eq('description');
+          expect(savedVersions[0]._id).to.be.ok;
+
+          expect(savedVersions[1].name).eq('asdf');
+          expect(savedVersions[1].archive).eq('asdf');
+          expect(savedVersions[1].description).to.not.be.ok;
+          expect(savedVersions[1]._id).to.be.ok;
+
+          done();
+        });
       });
     });
   });
