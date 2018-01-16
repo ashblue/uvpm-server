@@ -7,6 +7,7 @@ import * as async from 'async';
 import * as _ from 'lodash';
 
 import * as chai from 'chai';
+import { fileHelper } from '../../helpers/file-helper';
 chai.should();
 const expect = chai.expect;
 
@@ -75,6 +76,13 @@ describe('ModelPackageSchema', () => {
 
   afterEach((done) => {
     db.closeConnection(done);
+  });
+
+  after((done) => {
+    fileHelper.clearFileTestFolder((err) => {
+      expect(err).to.be.not.ok;
+      done();
+    });
   });
 
   it('should create a new item', (done) => {

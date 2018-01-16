@@ -9,8 +9,9 @@ export const fileHelper = {
   },
 
   clearFileTestFolder: (done: (err?: Error) => void) => {
-    if (fs.existsSync(appConfig.FILE_FOLDER_TEST)) {
-      rimraf(appConfig.FILE_FOLDER_TEST, done);
+    const path = `${appConfig.PUBLIC_FOLDER}/${appConfig.FILE_FOLDER_TEST}`;
+    if (fs.existsSync(path)) {
+      rimraf(path, done);
     } else {
       done();
     }

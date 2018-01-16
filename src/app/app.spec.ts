@@ -53,7 +53,7 @@ describe('App', () => {
 
     fs.writeFileSync(filePath, fileText);
     app = new App();
-    app.db.connection.once('open', () => {
+    app.createServer(appConfig.DEFAULT_PORT, () => {
       request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq, response, body) => {
         expect(errReq).to.be.not.ok;
         expect(response.statusCode).to.eq(200);
@@ -61,7 +61,7 @@ describe('App', () => {
 
         fs.unlinkSync(filePath);
         expect(fs.existsSync(filePath)).to.be.not.ok;
-
+        app.server.close();
         app.db.closeConnection(done);
       });
     });
@@ -81,10 +81,12 @@ describe('App', () => {
       assert.notEqual(app.express, undefined);
     });
 
-    it('should set the port on creation', () => {
-      app.createServer(3000);
-
-      assert.equal(app.port, 3000);
+    it('should set the port on creation', (done) => {
+      app.createServer(3000, () => {
+        assert.equal(app.port, 3000);
+        app.server.close();
+        done();
+      });
     });
   });
 });

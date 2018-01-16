@@ -29,12 +29,16 @@ export class App {
     this.routes = new RouteApi(this);
   }
 
-  public createServer (port: number) {
+  public createServer (port: number, done?: (err) => void) {
     this.port = port;
 
     this.server = this.express.listen(port, (err) => {
       if (err) {
-        return console.error(err);
+        console.error(err);
+      }
+
+      if (done) {
+        done(err);
       }
 
       return console.log(`Server is listening on ${port}`);

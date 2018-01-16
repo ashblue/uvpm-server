@@ -31,6 +31,13 @@ describe('ModelPackageVersionSchema', () => {
     db.closeConnection(done);
   });
 
+  after((done) => {
+    fileHelper.clearFileTestFolder((err) => {
+      expect(err).to.be.not.ok;
+      done();
+    });
+  });
+
   it('should initialize', (done) => {
     const data: IPackageVersionData = {
       name: 'asdf',
@@ -124,7 +131,10 @@ describe('ModelPackageVersionSchema', () => {
           expect(product).to.be.ok;
           expect(product.archive).to.contain(appConfig.FILE_FOLDER);
 
-          done();
+          pack.remove((err2) => {
+            expect(err2).to.not.be.ok;
+            done();
+          });
         });
       });
 
@@ -142,11 +152,17 @@ describe('ModelPackageVersionSchema', () => {
           expect(product).to.be.ok;
           const converted: any = product.toJSON();
 
-          request(converted.archive, (errReq, response, body) => {
-            expect(errReq).to.be.not.ok;
-            expect(response.statusCode).to.eq(200);
-            expect(body).to.contain(archive);
-            done();
+          app.createServer(appConfig.DEFAULT_PORT, (err2) => {
+            expect(err2).to.not.be.ok;
+
+            request(converted.archive, (errReq, response, body) => {
+              expect(errReq).to.be.not.ok;
+              expect(response.statusCode).to.eq(200);
+              expect(body).to.contain(archive);
+
+              app.server.close();
+              done();
+            });
           });
         });
       });
