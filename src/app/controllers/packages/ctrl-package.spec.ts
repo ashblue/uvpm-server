@@ -4,7 +4,7 @@ import * as chai from 'chai';
 import { IModelUser } from '../../models/user/i-model-user';
 import { App } from '../../app';
 import * as async from 'async';
-import { fileHelper } from '../../helpers/file-creator';
+import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
 
 const expect = chai.expect;

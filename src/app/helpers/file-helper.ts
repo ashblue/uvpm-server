@@ -4,6 +4,10 @@ import { appConfig } from './app-config';
 import rimraf = require('rimraf');
 
 export const fileHelper = {
+  mbToBytes (mb: number): number {
+    return 1024 * 1024 * mb;
+  },
+
   clearFileTestFolder: (done: (err?: Error) => void) => {
     if (fs.existsSync(appConfig.FILE_FOLDER_TEST)) {
       rimraf(appConfig.FILE_FOLDER_TEST, done);
@@ -12,8 +16,8 @@ export const fileHelper = {
     }
   },
 
-  createBase64File: (sizeMb: number, done: (base64: string) => void) => {
-    const bufferSize = new Buffer(1024 * 1024 * sizeMb);
+  createBase64File (sizeMb: number, done: (base64: string) => void) {
+    const bufferSize = new Buffer(this.mbToBytes(sizeMb));
 
     tmp.file((err, path, fd, cleanupCallback) => {
       fs.writeFile(path, bufferSize, 'utf8', (errWrite) => {
@@ -32,7 +36,7 @@ export const fileHelper = {
     });
   },
 
-  createBase64FileText: (text: string, done: (base64: string) => void) => {
+  createBase64FileText (text: string, done: (base64: string) => void) {
     tmp.file((err, path, fd, cleanupCallback) => {
       fs.writeFile(path, text, 'utf8', (errWrite) => {
         if (errWrite) {

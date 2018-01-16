@@ -4,6 +4,9 @@ import * as chai from 'chai';
 import { IModelPackageVersion } from './i-model-package-version';
 import { IPackageVersionData } from './i-package-version-data';
 import { App } from '../../../app';
+import { fileHelper } from '../../../helpers/file-helper';
+import * as async from 'async';
+
 const request = require('request');
 
 chai.should();
@@ -147,8 +150,32 @@ describe('ModelPackageVersionSchema', () => {
         });
       });
 
-      xit('should fail if the file size is over 5mb large', () => {
-        console.log('placeholder');
+      it('should fail if the file size is over 5mb large', (done) => {
+        const data: IPackageVersionData = {
+          name: 'asdf',
+          archive: '',
+          description: 'my desc',
+        };
+
+        async.series([
+          (callback) => {
+            fileHelper.createBase64File(6, (result) => {
+              data.archive = result;
+              callback();
+            });
+          },
+          (callback) => {
+            const pack = new db.models.PackageVersion(data);
+            pack.save((err) => {
+              expect(err).to.be.ok;
+              expect(err.toString()).to.contain('Files limited to 5mb');
+
+              callback();
+            });
+          },
+        ], () => {
+          done();
+        });
       });
 
       xit('should delete the archive file when deleted', () => {

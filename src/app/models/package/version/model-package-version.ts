@@ -29,6 +29,10 @@ export class ModelPackageVersionSchema extends ModelBase {
         ],
         // Hijack the base64 encrypted string and turn it into a file
         set: this.stringToFile,
+        validate: {
+          validator: this.validateFileSize,
+          message: `Files limited to ${appConfig.MAX_FILE_SIZE_MB}mb`,
+        },
       },
       description: {
         type: String,
@@ -47,6 +51,11 @@ export class ModelPackageVersionSchema extends ModelBase {
     return super.transform(doc, ret);
   }
 
+  private validateFileSize (file: string): boolean {
+    const fileDecode = Buffer.from(file, 'base64');
+    return fileDecode.byteLength < appConfig.MAX_FILE_SIZE;
+  }
+
   private stringToFile (fileString: string) {
     if (!fileString) {
       return fileString;
@@ -57,6 +66,11 @@ export class ModelPackageVersionSchema extends ModelBase {
       fileDecode = Buffer.from(fileString, 'base64');
     } catch (e) {
       console.error(e);
+      return fileString;
+    }
+
+    if (fileDecode.byteLength > appConfig.MAX_FILE_SIZE) {
+      // File size too large, pass back to validator to detect proper failure message
       return fileString;
     }
 

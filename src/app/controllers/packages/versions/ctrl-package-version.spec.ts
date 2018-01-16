@@ -4,7 +4,7 @@ import { appConfig } from '../../../helpers/app-config';
 
 import * as chai from 'chai';
 import { CtrlPackageVersion } from './ctrl-package-version';
-import { fileHelper } from '../../../helpers/file-creator';
+import { fileHelper } from '../../../helpers/file-helper';
 import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
 const expect = chai.expect;
 
