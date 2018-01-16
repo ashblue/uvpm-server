@@ -6,6 +6,7 @@ import { IPackageVersionData } from './i-package-version-data';
 import { App } from '../../../app';
 import { fileHelper } from '../../../helpers/file-helper';
 import * as async from 'async';
+import * as fs from 'fs';
 
 const request = require('request');
 
@@ -178,8 +179,26 @@ describe('ModelPackageVersionSchema', () => {
         });
       });
 
-      xit('should delete the archive file when deleted', () => {
-        console.log('placeholder');
+      it('should delete the archive file when deleted', (done) => {
+        const data: IPackageVersionData = {
+          name: 'asdf',
+          archive: 'my-archive',
+          description: 'my desc',
+        };
+
+        const pack = new db.models.PackageVersion(data);
+        pack.save((err, product) => {
+          expect(err).to.not.be.ok;
+          expect(product).to.be.ok;
+          expect(product.archive).to.contain(appConfig.FILE_FOLDER_TEST);
+
+          pack.remove((errRemove) => {
+            expect(errRemove).to.not.be.ok;
+            expect(fs.existsSync(product.archive)).to.not.be.ok;
+
+            done();
+          });
+        });
       });
     });
   });

@@ -3,6 +3,7 @@ import mongoose = require('mongoose');
 import { appConfig } from '../../../helpers/app-config';
 import * as fs from 'fs';
 import uuidv4 = require('uuid/v4');
+import { IModelPackageVersion } from './i-model-package-version';
 
 export class ModelPackageVersionSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
@@ -39,6 +40,24 @@ export class ModelPackageVersionSchema extends ModelBase {
         trim: true,
       },
     };
+  }
+
+  constructor () {
+    super();
+
+    this.schema.pre('remove', function (this: IModelPackageVersion, next) {
+      if (fs.existsSync(this.archive)) {
+        fs.unlink(this.archive, (err) => {
+          if (err) {
+            console.error(err);
+          }
+
+          next();
+        });
+      } else {
+        next();
+      }
+    });
   }
 
   protected transform (doc, ret) {
