@@ -1,9 +1,11 @@
 import { App } from './app';
 import * as assert from 'assert';
 import * as process from 'process';
-
 import * as chai from 'chai';
 import { appConfig } from './helpers/app-config';
+import * as fs from 'fs';
+
+const request = require('request');
 const expect = chai.expect;
 
 describe('App', () => {
@@ -44,6 +46,27 @@ describe('App', () => {
     });
   });
 
+  it('should set the public folder to readable', (done) => {
+    const fileText = 'Test';
+    const file = 'test.txt';
+    const filePath = `${appConfig.PUBLIC_FOLDER}/${file}`;
+
+    fs.writeFileSync(filePath, fileText);
+    app = new App();
+    app.db.connection.once('open', () => {
+      request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq, response, body) => {
+        expect(errReq).to.be.not.ok;
+        expect(response.statusCode).to.eq(200);
+        expect(body).to.contain(fileText);
+
+        fs.unlinkSync(filePath);
+        expect(fs.existsSync(filePath)).to.be.not.ok;
+
+        app.db.closeConnection(done);
+      });
+    });
+  });
+
   describe('after initializing', () => {
     beforeEach((done) => {
       app = new App();
@@ -62,14 +85,6 @@ describe('App', () => {
       app.createServer(3000);
 
       assert.equal(app.port, 3000);
-    });
-
-    xit('should create a public folder if it does not exist', () => {
-      console.log('placeholder');
-    });
-
-    xit('should set the public folder to readable', () => {
-      console.log('placeholder');
     });
   });
 });
