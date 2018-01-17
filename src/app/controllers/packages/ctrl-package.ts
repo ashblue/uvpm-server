@@ -40,7 +40,8 @@ export class CtrlPackage {
       }
 
       if (!result) {
-        this.create(pack, user)
+        pack.author = user.id;
+        this.create(pack)
           .then((result2) => {
             res.json(result2);
           })
@@ -55,7 +56,17 @@ export class CtrlPackage {
     });
   }
 
-  public create (pack: IPackageData, user: IModelUser): Promise<IModelPackage> {
+  public httpGet = (req: IExpressRequest, res: express.Response) => {
+    console.log('placeholder');
+  }
+
+  /**
+   * Create a package and attach a corresponding user
+   * @param {IPackageData} pack
+   * @param {IModelUser} user
+   * @returns {Promise<IModelPackage>}
+   */
+  public create (pack: IPackageData): Promise<IModelPackage> {
     return new Promise<IModelPackage>((resolve, reject) => {
       // Convert all package data to versions
       let versions: IModelPackageVersion[];
@@ -74,9 +85,13 @@ export class CtrlPackage {
         },
         (callback) => {
           // Verify package can be created
+          if (pack.author && typeof pack.author !== 'string' && pack.author.id) {
+            pack.author = pack.author.id;
+          }
+
           const newPack = new this.db.models.Package({
             name: pack.name,
-            author: user.id,
+            author: pack.author,
             versions,
           });
 
@@ -131,6 +146,23 @@ export class CtrlPackage {
         } else {
           reject(err);
         }
+      });
+    });
+  }
+
+  /**
+   * Get a package by its unique name
+   * @param {string} name
+   */
+  public get (name: string): Promise<IModelPackage> {
+    return new Promise<IModelPackage>((resolve, reject) => {
+      this.db.models.Package.findOne({ name }, (err, res: IModelPackage) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        resolve(res);
       });
     });
   }

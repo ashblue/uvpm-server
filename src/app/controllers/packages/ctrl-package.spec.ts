@@ -210,7 +210,7 @@ describe('CtrlPackage', () => {
           author: user,
         };
 
-        return ctrl.create(data, user)
+        return ctrl.create(data)
           .then((res) => {
             chai.assert.fail(0, 1, res.toString());
           })
@@ -233,7 +233,7 @@ describe('CtrlPackage', () => {
           ],
         };
 
-        return ctrl.create(data, user)
+        return ctrl.create(data)
           .then((res) => {
             expect(res).to.be.ok;
             expect(res.id).to.be.ok;
@@ -275,7 +275,7 @@ describe('CtrlPackage', () => {
           ],
         };
 
-        return ctrl.create(data, user)
+        return ctrl.create(data)
           .then((res) => {
             expect(res).to.be.ok;
 
@@ -315,7 +315,7 @@ describe('CtrlPackage', () => {
           ],
         };
 
-        ctrl.create(data, user)
+        ctrl.create(data)
           .then((res) => {
             chai.assert.fail(0, 1, res.toString());
           })
@@ -339,7 +339,7 @@ describe('CtrlPackage', () => {
           ],
         };
 
-        return ctrl.create(data, user)
+        return ctrl.create(data)
           .then((res) => {
             chai.assert.fail(0, 1, res.toString());
           })
@@ -361,7 +361,7 @@ describe('CtrlPackage', () => {
           ],
         };
 
-        return ctrl.create(data, user)
+        return ctrl.create(data)
           .then((res) => {
             chai.assert.fail(0, 1, res.toString());
           })
@@ -369,6 +369,42 @@ describe('CtrlPackage', () => {
             expect(err).to.be.ok;
             expect(err.errors.name.message).to.contain('Version name is required');
           });
+      });
+    });
+
+    describe('get', () => {
+      it('should retrieve a package by name', (done) => {
+        ctrl.create({
+          name: 'asdf',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        }).then((result) => {
+          ctrl.get(result.name).then((record) => {
+            expect(record).to.be.ok;
+            expect(record.name).to.be.eq('asdf');
+            done();
+          });
+        });
+      });
+
+      xit('should return an error if the package name does not exist', () => {
+        console.log('placeholder');
+      });
+    });
+
+    describe('httpGet', () => {
+      xit('should retrieve a package via url', () => {
+        console.log('placeholder');
+
+      });
+
+      xit('should return an error if the lookup fails', () => {
+        console.log('placeholder');
       });
     });
   });

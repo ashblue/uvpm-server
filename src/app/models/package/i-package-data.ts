@@ -3,6 +3,6 @@ import { IUserData } from '../user/i-user-data';
 
 export interface IPackageData {
   name: string;
-  author: IUserData;
+  author: IUserData | string;
   versions: [IPackageVersionData];
 }
