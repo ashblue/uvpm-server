@@ -6,6 +6,7 @@ import { App } from '../../app';
 import * as async from 'async';
 import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
+import { IModelPackage } from '../../models/package/i-model-package';
 
 const expect = chai.expect;
 
@@ -392,8 +393,18 @@ describe('CtrlPackage', () => {
         });
       });
 
-      xit('should return an error if the package name does not exist', () => {
-        console.log('placeholder');
+      it('should return an error if the package name does not exist', async () => {
+        const name = 'asdf';
+        const getPromise = ctrl.get('asdf');
+        let result: IModelPackage | null = null;
+
+        try {
+          result = await getPromise;
+        } catch (err) {
+          expect(err.toString()).to.eq(`Error: Could not find find the requested package ID ${name}`);
+        }
+
+        expect(result).to.be.not.ok;
       });
     });
 

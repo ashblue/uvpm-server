@@ -162,6 +162,11 @@ export class CtrlPackage {
           return;
         }
 
+        if (!res) {
+          reject(new Error(`Could not find find the requested package ID ${name}`));
+          return;
+        }
+
         resolve(res);
       });
     });
