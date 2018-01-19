@@ -6,7 +6,6 @@ import { App } from '../../app';
 import * as async from 'async';
 import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
-import { IModelPackage } from '../../models/package/i-model-package';
 
 const expect = chai.expect;
 
@@ -54,6 +53,10 @@ describe('CtrlPackage', () => {
         app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
           ctrl.httpPost(req, res);
         });
+      });
+
+      app.express.get(`${routePackages}/:idPackage`, (req, res) => {
+        ctrl.httpGet(req, res);
       });
 
       const userDetails = {
@@ -393,29 +396,52 @@ describe('CtrlPackage', () => {
         });
       });
 
-      it('should return an error if the package name does not exist', async () => {
-        const name = 'asdf';
+      it('should return null if the package name does not exist', async () => {
         const getPromise = ctrl.get('asdf');
-        let result: IModelPackage | null = null;
-
-        try {
-          result = await getPromise;
-        } catch (err) {
-          expect(err.toString()).to.eq(`Error: Could not find find the requested package ID ${name}`);
-        }
+        const result = await getPromise;
 
         expect(result).to.be.not.ok;
       });
     });
 
     describe('httpGet', () => {
-      xit('should retrieve a package via url', () => {
-        console.log('placeholder');
+      it('should retrieve a package via url', async () => {
+        const packId = 'asdf';
+        const pack = await ctrl.create({
+          name: packId,
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
 
+        await request(app.express)
+          .get(`${routePackages}/${packId}`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((packGet) => {
+            expect(packGet.body).to.be.ok;
+            expect(packGet.body.id).to.be.ok;
+            expect(packGet.body.id).to.eq(pack.id);
+          });
       });
 
-      xit('should return an error if the lookup fails', () => {
-        console.log('placeholder');
+      it('should return an error if the lookup fails', (done) => {
+        const packId = 'fdsa';
+        request(app.express)
+          .get(`${routePackages}/${packId}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .end((err, response) => {
+            expect(err).to.not.be.ok;
+            expect(response.body).to.be.ok;
+            expect(response.body.message).to.contain(`Could not find the requested package ID ${packId}`);
+
+            done();
+          });
       });
     });
   });

@@ -57,7 +57,25 @@ export class CtrlPackage {
   }
 
   public httpGet = (req: IExpressRequest, res: express.Response) => {
-    console.log('placeholder');
+    const id: string = req.params.idPackage;
+
+    this.get(id)
+      .then((pack) => {
+        if (pack == null) {
+          res.status(400)
+            .json({
+              message: `Could not find the requested package ID ${id}`,
+            });
+          return;
+        }
+
+        res.json(pack);
+      })
+      .catch((err) => {
+        res
+          .status(400)
+          .json(err);
+      });
   }
 
   /**
@@ -159,11 +177,6 @@ export class CtrlPackage {
       this.db.models.Package.findOne({ name }, (err, res: IModelPackage) => {
         if (err) {
           reject(err);
-          return;
-        }
-
-        if (!res) {
-          reject(new Error(`Could not find find the requested package ID ${name}`));
           return;
         }
 
