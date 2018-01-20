@@ -3,6 +3,8 @@ import { Database } from '../../databases/database';
 import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
 import { ModelCollection } from '../../databases/model-collection';
 import { IModelPackage } from '../../../models/package/i-model-package';
+import * as express from 'express';
+import { IExpressRequest } from '../../../helpers/interfaces/i-express-request';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
@@ -118,5 +120,20 @@ export class CtrlPackageVersion {
           resolve(verResult);
         });
     });
+  }
+
+  public httpGet = (req: IExpressRequest, res: express.Response) => {
+    const idPackage: string = req.params.idPackage;
+    const idVersion: string = req.params.idVersion;
+
+    this.get(idPackage, idVersion)
+      .then((pack) => {
+        res.json(pack);
+      })
+      .catch((err) => {
+        res
+          .status(400)
+          .json(err);
+      });
   }
 }

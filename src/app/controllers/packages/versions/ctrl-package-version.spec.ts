@@ -11,6 +11,7 @@ import { IModelUser } from '../../../models/user/i-model-user';
 import { App } from '../../../app';
 const expect = chai.expect;
 import request = require('supertest');
+import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -324,16 +325,95 @@ describe('CtrlPackageVersion', () => {
     });
 
     describe('httpGet', () => {
-      xit('should get a version via url `PACKAGE_NAME?`', () => {
-        console.log('placeholder');
+      beforeEach(() => {
+        app.express.get(`/packages/:idPackage/versions/:idVersion`, (req, res) => {
+          ctrlVersion.httpGet(req, res);
+        });
       });
 
-      xit('should error if the package does not exist', () => {
-        console.log('placeholder');
+      it('should get a version via url `packages/ID/versions/ID`', async () => {
+        const packId = 'asdf';
+        const verId = '0.0.0';
+        const pack = await ctrlPackage.create({
+          name: packId,
+          author: user.id,
+          versions: [
+            {
+              name: verId,
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const ver = pack.versions[0];
+
+        await request(app.express)
+          .get(`/packages/${packId}/versions/${verId}`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((result) => {
+            const v: IModelPackageVersion = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.id).to.be.ok;
+            expect(v.id).to.eq(ver.id);
+            expect(v.name).to.eq(ver.name);
+            expect(v.archive).to.be.ok;
+          });
       });
 
-      xit('should error if the version does not exist', () => {
-        console.log('placeholder');
+      it('should error if the package does not exist', async () => {
+        const packId = 'asdf';
+        const verId = '1.0.0';
+        await ctrlPackage.create({
+          name: 'fdas',
+          author: user.id,
+          versions: [
+            {
+              name: verId,
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        await request(app.express)
+          .get(`/packages/${packId}/versions/${verId}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((result) => {
+            const v: {message: string} = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.message).to.be.ok;
+            expect(v.message).to.eq(`Package ${packId} could not be found`);
+          });
+      });
+
+      it('should error if the version does not exist', async () => {
+        const packId = 'asdf';
+        const verId = '1.0.0';
+        await ctrlPackage.create({
+          name: packId,
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        await request(app.express)
+          .get(`/packages/${packId}/versions/${verId}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((result) => {
+            const v: {message: string} = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.message).to.be.ok;
+            expect(v.message).to.eq(`Package ${packId} does not have version ${verId}`);
+          });
       });
     });
 
