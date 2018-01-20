@@ -4,6 +4,7 @@ import { appConfig } from '../../../helpers/app-config';
 import * as fs from 'fs';
 import uuidv4 = require('uuid/v4');
 import { IModelPackageVersion } from './i-model-package-version';
+import { fileHelper } from '../../../helpers/file-helper';
 
 export class ModelPackageVersionSchema extends ModelBase {
   protected get schemaDefinition (): mongoose.SchemaDefinition {
@@ -74,7 +75,7 @@ export class ModelPackageVersionSchema extends ModelBase {
 
   private validateFileSize (file: string): boolean {
     const fileDecode = Buffer.from(file, 'base64');
-    return fileDecode.byteLength < appConfig.MAX_FILE_SIZE;
+    return fileDecode.byteLength < fileHelper.maxFileSize();
   }
 
   private stringToFile (fileString: string) {
@@ -90,7 +91,7 @@ export class ModelPackageVersionSchema extends ModelBase {
       return fileString;
     }
 
-    if (fileDecode.byteLength > appConfig.MAX_FILE_SIZE) {
+    if (fileDecode.byteLength > fileHelper.maxFileSize()) {
       // File size too large, pass back to validator to detect proper failure message
       return fileString;
     }

@@ -4,6 +4,11 @@ import { appConfig } from './app-config';
 import rimraf = require('rimraf');
 
 export const fileHelper = {
+  // Max file size in bytes
+  maxFileSize () {
+    return this.mbToBytes(appConfig.MAX_FILE_SIZE_MB);
+  },
+
   mbToBytes (mb: number): number {
     return 1024 * 1024 * mb;
   },

@@ -1,58 +1,53 @@
 import * as process from 'process';
-import { fileHelper } from './file-helper';
-
-const PUBLIC_FOLDER = 'public';
-const MAX_FILE_SIZE_MB = 5;
 
 /**
  * @TODO These configs should be overridable with a JSON file placed in the app's root
  */
-export const appConfig = {
+class AppConfig {
   // Max file size in megabytes
-  MAX_FILE_SIZE_MB,
+  public MAX_FILE_SIZE_MB = 5;
 
-  // Max file size in bytes
-  MAX_FILE_SIZE: fileHelper.mbToBytes(MAX_FILE_SIZE_MB),
+  public DEFAULT_PORT = 3000;
 
-  DEFAULT_PORT: 3000,
+  public DB_DEFAULT_URL = 'mongodb://localhost/uv-package-manager';
+  public DB_TEST_URL = 'mongodb://localhost/uv-package-manager-test';
 
-  DB_DEFAULT_URL: 'mongodb://localhost/uv-package-manager',
-  DB_TEST_URL: 'mongodb://localhost/uv-package-manager-test',
+  public PUBLIC_FOLDER = 'public';
+  public FILE_FOLDER = 'files';
+  public FILE_FOLDER_TEST = 'tmp-files';
 
-  PUBLIC_FOLDER,
-  FILE_FOLDER: 'files',
-  FILE_FOLDER_TEST: 'tmp-files',
-
-  ROOT_URL: 'http://uvpm.com',
-  ROOT_URL_TEST: 'http://localhost:3000',
+  public ROOT_URL = 'http://uvpm.com';
+  public ROOT_URL_TEST = 'http://localhost:3000';
 
   /**
    * Check if this is the testing environment
    */
-  isEnvTest () {
+  public isEnvTest () {
     return process.env.TEST === 'true';
-  },
+  }
 
   /**
    * Check if this is the production environment
    */
-  isEnvProcution () {
+  public isEnvProcution () {
     return process.env.NODE_ENV === 'production';
-  },
+  }
 
-  getFileFolder () {
+  public getFileFolder () {
     if (this.isEnvTest()) {
       return this.FILE_FOLDER_TEST;
     }
 
     return this.FILE_FOLDER;
-  },
+  }
 
-  getRootUrl () {
+  public getRootUrl () {
     if (this.isEnvProcution()) {
       return this.ROOT_URL;
     }
 
     return this.ROOT_URL_TEST;
-  },
-};
+  }
+}
+
+export const appConfig = new AppConfig();
