@@ -40,7 +40,7 @@ describe('ModelPackageVersionSchema', () => {
 
   it('should initialize', (done) => {
     const data: IPackageVersionData = {
-      name: 'asdf',
+      name: '0.0.0',
       archive: 'my-archive',
       description: 'my desc',
     };
@@ -61,7 +61,7 @@ describe('ModelPackageVersionSchema', () => {
     describe('archive file handling', () => {
       it('should turn the archive into a relative path of public/tmp-files/*', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: 'my-archive',
           description: 'my desc',
         };
@@ -78,7 +78,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('should place the file in public/tmp-files', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: 'my-archive',
           description: 'my desc',
         };
@@ -95,7 +95,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('should convert the archive to a full http code when converted to JSON', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: 'my-archive',
           description: 'my desc',
         };
@@ -117,7 +117,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('writes files to the public/files folder if out of test mode', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: 'my-archive',
           description: 'my desc',
         };
@@ -141,7 +141,7 @@ describe('ModelPackageVersionSchema', () => {
       it('should provide a working http address to download the file (via curl)', (done) => {
         const archive = 'Hello World';
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: new Buffer(archive).toString('base64'),
           description: 'my desc',
         };
@@ -169,7 +169,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('should fail if the file size is over 5mb large', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: '',
           description: 'my desc',
         };
@@ -197,7 +197,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('should delete the archive file when deleted', (done) => {
         const data: IPackageVersionData = {
-          name: 'asdf',
+          name: '0.0.0',
           archive: 'my-archive',
           description: 'my desc',
         };
@@ -223,7 +223,7 @@ describe('ModelPackageVersionSchema', () => {
     describe('version', () => {
       it('should be a property', (done) => {
         const pack = new db.models.PackageVersion({
-          name: 'a-0.1.4',
+          name: '0-0.1.4',
           archive: 'asdf',
         });
 
@@ -246,7 +246,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should be trimmed when saved', (done) => {
-        const version = 'a-0.1.4';
+        const version = '0-0.1.4';
         const pack = new db.models.PackageVersion({
           name: `    ${version} `,
           archive: 'asdf',
@@ -260,7 +260,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should allow numbers', (done) => {
-        const name = '12345';
+        const name = '12345.0.0';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -274,7 +274,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should allow lowercase letters', (done) => {
-        const name = 'asdf';
+        const name = '0.0.0a';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -288,7 +288,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow uppercase letters', (done) => {
-        const name = 'ASDF';
+        const name = '0.0.0ASDF';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -317,8 +317,8 @@ describe('ModelPackageVersionSchema', () => {
         });
       });
 
-      it('should not allow a stand alone period', (done) => {
-        const name = '.';
+      it('should not allow a stand alone periods', (done) => {
+        const name = '..';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -334,7 +334,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow consecutive periods between characters', (done) => {
-        const name = '1..0';
+        const name = '1..0.0';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -350,7 +350,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow a period at the beginning', (done) => {
-        const name = '.1';
+        const name = '.1.0.0';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -366,7 +366,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow a period at the ending', (done) => {
-        const name = '1.';
+        const name = '1.0.0.';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -382,7 +382,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should allow a dash', (done) => {
-        const name = '1-1';
+        const name = '1-1.0.0';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -411,24 +411,8 @@ describe('ModelPackageVersionSchema', () => {
         });
       });
 
-      it('should not allow consecutive dashes between characters', (done) => {
-        const name = '1--a';
-        const pack = new db.models.PackageVersion({
-          name,
-          archive: 'asdf',
-        });
-
-        pack.save((err) => {
-          expect(err).to.be.ok;
-          expect(err.errors.name);
-          expect(err.errors.name.message).to.contain('only supports lowercase letters');
-
-          done();
-        });
-      });
-
       it('should not allow a dash at the beginning', (done) => {
-        const name = '-1a';
+        const name = '-1.0.0';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -444,7 +428,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow a dash at the ending', (done) => {
-        const name = '1a-';
+        const name = '1.0.0-';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -460,7 +444,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow dashes and periods without text or numbers', (done) => {
-        const name = '-.';
+        const name = '-.-.';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -476,7 +460,7 @@ describe('ModelPackageVersionSchema', () => {
       });
 
       it('should not allow special characters', (done) => {
-        const name = '+.*.*';
+        const name = '0+.0*.0*';
         const pack = new db.models.PackageVersion({
           name,
           archive: 'asdf',
@@ -491,31 +475,97 @@ describe('ModelPackageVersionSchema', () => {
         });
       });
 
-      xit('should not allow 2 periods', (done) => {
-        console.log('placeholder');
+      it('should not allow zero periods', (done) => {
+        const name = '0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.name);
+          expect(err.errors.name.message.toLowerCase()).to.contain('must have 2 periods');
+
+          done();
+        });
       });
 
-      xit('should allow 3 periods', (done) => {
-        console.log('placeholder');
+      it('should not allow 1 period', (done) => {
+        const name = '0.0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.name);
+          expect(err.errors.name.message.toLowerCase()).to.contain('must have 2 periods');
+
+          done();
+        });
       });
 
-      xit('should allow more than 3 periods', (done) => {
-        console.log('placeholder');
+      it('should allow 2 periods', (done) => {
+        const name = '0.0.0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.not.be.ok;
+          done();
+        });
       });
 
-      xit('should not allow anything after a period to start with a non number', (done) => {
-        console.log('placeholder');
+      it('should allow more than 2 periods', (done) => {
+        const name = '0.0.0.0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.not.be.ok;
+          done();
+        });
       });
 
-      xit('should not allow the first character to be a non number', (done) => {
-        console.log('placeholder');
+      it('should not allow anything after a period to start with a non number', (done) => {
+        const name = '0.a0.a0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.name.message.toLowerCase()).to.contain('start with a number');
+          done();
+        });
+      });
+
+      it('should not allow the first character to be a non number', (done) => {
+        const name = 'a0.0.0';
+        const pack = new db.models.PackageVersion({
+          name,
+          archive: 'asdf',
+        });
+
+        pack.save((err) => {
+          expect(err).to.be.ok;
+          expect(err.errors.name.message.toLowerCase()).to.contain('start with a number');
+          done();
+        });
       });
     });
 
     describe('archive', () => {
       it('should have a property', (done) => {
         const pack = new db.models.PackageVersion({
-          name: 'a-0.1.4',
+          name: '0.0.0',
           archive: 'FILE_PATH',
         });
 
@@ -541,7 +591,7 @@ describe('ModelPackageVersionSchema', () => {
     describe('description', () => {
       it('should have a description', (done) => {
         const pack = new db.models.PackageVersion({
-          name: 'a-0.1.4',
+          name: '0.0.0',
           archive: 'FILE_PATH',
           description: 'My description',
         });
@@ -555,7 +605,7 @@ describe('ModelPackageVersionSchema', () => {
 
       it('should be optional', (done) => {
         const pack = new db.models.PackageVersion({
-          name: 'a-0.1.4',
+          name: '0.0.0',
           archive: 'FILE_PATH',
         });
 

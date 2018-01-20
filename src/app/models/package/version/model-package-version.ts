@@ -16,9 +16,11 @@ export class ModelPackageVersionSchema extends ModelBase {
         type: String,
         trim: true,
         match: [
-          /^[a-z0-9]+([.-][a-z0-9]+)*$/,
+          /^[0-9][-0-9a-z]*([.][0-9]([-]?[0-9a-z])*){2,}$/,
           'Version name only supports lowercase letters and numbers with optional dashes or period in-between characters.' +
-          ' Example "a-0.1.4"',
+          ' Must have 2 periods.' +
+          ' Must start with a number and have a number immediately after each decimal point.' +
+          ' Example "0.0.0" or "1.0.2-a.1"',
         ],
       },
       archive: {

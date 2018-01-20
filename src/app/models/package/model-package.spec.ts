@@ -49,7 +49,7 @@ describe('ModelPackageSchema', () => {
           },
           (complete) => {
             pack = new db.models.PackageVersion({
-              name: 'asdf',
+              name: '0.0.0',
               archive: 'asdf',
             });
             pack.save((err, result) => {

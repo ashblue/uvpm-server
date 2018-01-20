@@ -53,14 +53,14 @@ describe('CtrlPackageVersion', () => {
     describe('create', () => {
       it('should create a new name object', (done) => {
         ctrl.create({
-          name: 'asdf',
+          name: '0.0.0',
           archive: fileBase64,
         }, (err, result) => {
           expect(err).to.be.not.ok;
           expect(result).to.be.ok;
 
           if (result) {
-            expect(result.name).to.eq('asdf');
+            expect(result.name).to.eq('0.0.0');
             expect(result.archive).to.be.ok;
           }
 
@@ -86,7 +86,7 @@ describe('CtrlPackageVersion', () => {
     describe('sanitize', () => {
       it('should return a cleaned version', () => {
         const version: IPackageVersionData = {
-            name: 'name',
+            name: '0.0.0',
             archive: 'archive',
         };
 
@@ -102,12 +102,12 @@ describe('CtrlPackageVersion', () => {
       it('should return an array of sanitized versions', () => {
         const versions: IPackageVersionData[] = [
           {
-            name: 'name',
+            name: '0.0.0',
             archive: 'archive',
             description: 'description',
           },
           {
-            name: 'asdf',
+            name: '0.0.0',
             archive: 'asdf',
             description: 'asdf',
           },
@@ -116,7 +116,7 @@ describe('CtrlPackageVersion', () => {
         const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned.length).eq(2);
-        expect(cleaned[0].name).eq('name');
+        expect(cleaned[0].name).eq('0.0.0');
         expect(cleaned[0].archive).eq('archive');
         expect(cleaned[0].description).eq('description');
       });
@@ -124,7 +124,7 @@ describe('CtrlPackageVersion', () => {
       it('should not inject an empty description', () => {
         const versions: IPackageVersionData[] = [
           {
-            name: 'name',
+            name: '0.0.0',
             archive: 'archive',
           },
         ];
@@ -149,7 +149,7 @@ describe('CtrlPackageVersion', () => {
 
         const versions: IPackageVersionData[] = [
           {
-            name: 'name',
+            name: '0.0.0',
             archive: 'archive',
             description: 'description',
           },
@@ -160,7 +160,7 @@ describe('CtrlPackageVersion', () => {
         const cleaned = ctrl.sanitizeMany(versions);
 
         expect(cleaned.length).eq(1);
-        expect(cleaned[0].name).eq('name');
+        expect(cleaned[0].name).eq('0.0.0');
         expect(cleaned[0].archive).eq('archive');
         expect(cleaned[0].description).eq('description');
       });
@@ -190,12 +190,12 @@ describe('CtrlPackageVersion', () => {
       it('should convert an array of objects to package version models with id', (done) => {
         const versions: IPackageVersionData[] = [
           {
-            name: 'name',
+            name: '0.0.0',
             archive: 'archive',
             description: 'description',
           },
           {
-            name: 'asdf',
+            name: '1.0.0',
             archive: 'asdf',
           },
         ];
@@ -204,12 +204,12 @@ describe('CtrlPackageVersion', () => {
         promise.then((savedVersions) => {
           expect(savedVersions.length).eq(2);
 
-          expect(savedVersions[0].name).eq('name');
+          expect(savedVersions[0].name).eq('0.0.0');
           expect(savedVersions[0].archive).to.not.eq('archive');
           expect(savedVersions[0].description).eq('description');
           expect(savedVersions[0]._id).to.be.ok;
 
-          expect(savedVersions[1].name).eq('asdf');
+          expect(savedVersions[1].name).eq('1.0.0');
           expect(savedVersions[1].archive).to.not.eq('asdf');
           expect(savedVersions[1].description).to.not.be.ok;
           expect(savedVersions[1]._id).to.be.ok;
