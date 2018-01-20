@@ -174,14 +174,30 @@ export class CtrlPackage {
    */
   public get (name: string): Promise<IModelPackage> {
     return new Promise<IModelPackage>((resolve, reject) => {
-      this.db.models.Package.findOne({ name }, (err, res: IModelPackage) => {
-        if (err) {
-          reject(err);
-          return;
-        }
+      this.db.models.Package
+        .findOne({ name })
+        .populate([
+          {
+            path: 'versions',
+            model: ModelCollection.PACKAGE_VERSION_ID,
+            options: {
+              sort: {
+                name: -1,
+              },
+            },
+          },
+          {
+            path: 'author',
+          },
+        ])
+        .exec((err, res: IModelPackage) => {
+          if (err) {
+            reject(err);
+            return;
+          }
 
-        resolve(res);
-      });
+          resolve(res);
+        });
     });
   }
 }

@@ -6,6 +6,7 @@ import { App } from '../../app';
 import * as async from 'async';
 import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
+import { IModelPackage } from '../../models/package/i-model-package';
 
 const expect = chai.expect;
 
@@ -120,6 +121,7 @@ describe('CtrlPackage', () => {
 
             expect(res.body).to.be.ok;
             expect(res.body.id).to.be.ok;
+            expect(res.body.author.password).to.not.be.ok;
 
             done();
           });
@@ -241,18 +243,19 @@ describe('CtrlPackage', () => {
           .then((res) => {
             expect(res).to.be.ok;
             expect(res.id).to.be.ok;
-            expect(res.name).to.be.ok;
+            expect(res.name).to.eq(data.name);
 
             expect(res.author).to.be.ok;
-            expect(res.id).to.be.ok;
+            expect(res.author.name).to.eq(user.name);
             expect(res.author.id).to.equal(user.id);
+            expect(res.author.email).to.equal(user.email);
 
             expect(res.versions).to.be.ok;
             expect(res.versions.length).to.equal(1);
 
             expect(res.versions[0]).to.be.ok;
             expect(res.versions[0].name).to.eq(data.versions[0].name);
-            expect(res.versions[0].archive).to.be.ok;
+            expect(res.versions[0].archive).to.not.eq(data.versions[0].archive);
             expect(res.versions[0].description).to.eq(data.versions[0].description);
           })
           .catch((err) => {
@@ -422,10 +425,60 @@ describe('CtrlPackage', () => {
           .get(`${routePackages}/${packId}`)
           .expect('Content-Type', /json/)
           .expect(200)
-          .then((packGet) => {
-            expect(packGet.body).to.be.ok;
-            expect(packGet.body.id).to.be.ok;
-            expect(packGet.body.id).to.eq(pack.id);
+          .then((result) => {
+            const p: IModelPackage = result.body;
+
+            expect(p).to.be.ok;
+            expect(p.id).to.be.ok;
+            expect(p.id).to.eq(pack.id);
+            expect(p.name).to.eq(pack.name);
+
+            expect(p.author).to.be.ok;
+            expect(p.author.name).to.eq(user.name);
+            expect(p.author.email).to.eq(user.email);
+            expect(p.author.password).to.not.be.ok;
+            expect(p.author.id).to.eq(user.id);
+
+            expect(p.versions).to.be.ok;
+            const v = p.versions[0];
+            expect(v).to.be.ok;
+            expect(v.name).to.be.eq(pack.versions[0].name);
+            expect(v.archive).to.contain('file');
+          });
+      });
+
+      it('should return packages from greatest version number to oldest', async () => {
+        const packId = 'asdf';
+        const pack = await ctrl.create({
+          name: packId,
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.1.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        await request(app.express)
+          .get(`${routePackages}/${packId}`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((result) => {
+            const p: IModelPackage = result.body;
+            expect(p.versions).to.be.ok;
+
+            const v = p.versions[0];
+            expect(v).to.be.ok;
+            expect(v.name).to.be.eq(pack.versions[1].name);
+
+            const v2 = p.versions[1];
+            expect(v2).to.be.ok;
+            expect(v2.name).to.be.eq(pack.versions[0].name);
           });
       });
 
