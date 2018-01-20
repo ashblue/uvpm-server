@@ -10,7 +10,7 @@ import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 
 export class CtrlPackage {
-  private versions: CtrlPackageVersion;
+  public versions: CtrlPackageVersion;
 
   constructor (private db: Database) {
     this.versions = new CtrlPackageVersion(this.db);

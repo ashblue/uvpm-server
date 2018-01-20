@@ -1,6 +1,8 @@
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 import { Database } from '../../databases/database';
 import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
+import { ModelCollection } from '../../databases/model-collection';
+import { IModelPackage } from '../../../models/package/i-model-package';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
@@ -83,6 +85,38 @@ export class CtrlPackageVersion {
 
     version.save((errSave, result) => {
       done(errSave, result);
+    });
+  }
+
+  public get (packageName: string, versionName: string): Promise<IModelPackageVersion> {
+    return new Promise<IModelPackageVersion>((resolve, reject) => {
+      this.db.models.Package
+        .findOne({ name: packageName })
+        .populate([
+          {
+            path: 'versions',
+            model: ModelCollection.PACKAGE_VERSION_ID,
+          },
+        ])
+        .exec((err, res: IModelPackage) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          if (!res) {
+            reject({ message: `Package ${packageName} could not be found` });
+            return;
+          }
+
+          const verResult = res.versions.find((v) => v.name === versionName);
+          if (!verResult) {
+            reject({ message: `Package ${packageName} does not have version ${versionName}` });
+            return;
+          }
+
+          resolve(verResult);
+        });
     });
   }
 }

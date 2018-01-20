@@ -1,26 +1,33 @@
 import { Database } from '../../databases/database';
 import { CtrlUser } from '../../users/ctrl-user';
-import { appConfig } from '../../../helpers/app-config';
-
+import * as async from 'async';
 import * as chai from 'chai';
 import { CtrlPackageVersion } from './ctrl-package-version';
 import { fileHelper } from '../../../helpers/file-helper';
 import { IPackageVersionData } from '../../../models/package/version/i-package-version-data';
+import { CtrlPackage } from '../ctrl-package';
+import { IPackageData } from '../../../models/package/i-package-data';
+import { IModelUser } from '../../../models/user/i-model-user';
+import { App } from '../../../app';
 const expect = chai.expect;
+import request = require('supertest');
 
 describe('CtrlPackageVersion', () => {
+  let app: App;
   let db: Database;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
-      dbRef.connection.db.dropDatabase().then(() => {
+    app = new App();
+    app.db.connection.once('open', () => {
+      db = app.db;
+      db.connection.db.dropDatabase().then(() => {
         done();
       });
     });
   });
 
   afterEach((done) => {
-    db.closeConnection(done);
+    app.db.closeConnection(done);
   });
 
   after((done) => {
@@ -37,22 +44,61 @@ describe('CtrlPackageVersion', () => {
   });
 
   describe('when initialized', () => {
-    let ctrl: CtrlPackageVersion;
+    let ctrlVersion: CtrlPackageVersion;
+    let ctrlPackage: CtrlPackage;
     let fileBase64: string;
+    let user: IModelUser;
+    // let token: string;
 
     beforeEach((done) => {
-      ctrl = new CtrlPackageVersion(db);
-      expect(ctrl).to.be.ok;
+      ctrlPackage = new CtrlPackage(db);
+      ctrlVersion = ctrlPackage.versions;
+      expect(ctrlVersion).to.be.ok;
 
-      fileHelper.createBase64File(1, (base64) => {
-        fileBase64 = base64;
+      async.parallel([
+        (callback) => {
+          fileHelper.createBase64File(1, (base64) => {
+            fileBase64 = base64;
+            callback();
+          });
+        },
+        (callback) => {
+          const userDetails = {
+            name: 'asdf',
+            email: 'asdf@asdf.com',
+            password: 'asdfasdf1',
+          };
+
+          request(app.express)
+            .post('/api/v1/users')
+            .send(userDetails)
+            .expect(200)
+            .end((err, res) => {
+              expect(err).to.be.not.ok;
+
+              request(app.express)
+                .post('/api/v1/users/login')
+                .send(userDetails)
+                .expect(200)
+                .end((err2, res2) => {
+                  expect(err2).to.not.be.ok;
+                  expect(res2.body).to.haveOwnProperty('user');
+
+                  // token = `Bearer ${res2.body.token}`;
+                  user = res2.body.user;
+
+                  callback();
+                });
+            });
+        },
+      ], () => {
         done();
       });
     });
 
     describe('create', () => {
       it('should create a new name object', (done) => {
-        ctrl.create({
+        ctrlVersion.create({
           name: '0.0.0',
           archive: fileBase64,
         }, (err, result) => {
@@ -69,7 +115,7 @@ describe('CtrlPackageVersion', () => {
       });
 
       it('should error if invalid data is provided', (done) => {
-        ctrl.create({
+        ctrlVersion.create({
           name: '',
           archive: fileBase64,
         }, (err) => {
@@ -90,7 +136,7 @@ describe('CtrlPackageVersion', () => {
             archive: 'archive',
         };
 
-        const cleaned = ctrl.sanitize(version);
+        const cleaned = ctrlVersion.sanitize(version);
 
         expect(cleaned.name).eq(version.name);
         expect(cleaned.archive).eq(version.archive);
@@ -107,13 +153,13 @@ describe('CtrlPackageVersion', () => {
             description: 'description',
           },
           {
-            name: '0.0.0',
+            name: '1.0.0',
             archive: 'asdf',
             description: 'asdf',
           },
         ];
 
-        const cleaned = ctrl.sanitizeMany(versions);
+        const cleaned = ctrlVersion.sanitizeMany(versions);
 
         expect(cleaned.length).eq(2);
         expect(cleaned[0].name).eq('0.0.0');
@@ -129,7 +175,7 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const cleaned = ctrl.sanitizeMany(versions);
+        const cleaned = ctrlVersion.sanitizeMany(versions);
 
         expect(cleaned[0]).to.not.haveOwnProperty('description');
       });
@@ -137,7 +183,7 @@ describe('CtrlPackageVersion', () => {
       it('should return an empty array on an empty argument', () => {
         const versions: any = null;
 
-        const cleaned = ctrl.sanitizeMany(versions);
+        const cleaned = ctrlVersion.sanitizeMany(versions);
 
         expect(cleaned).to.be.ok;
         expect(cleaned.length).eq(0);
@@ -157,7 +203,7 @@ describe('CtrlPackageVersion', () => {
           emptyB,
         ];
 
-        const cleaned = ctrl.sanitizeMany(versions);
+        const cleaned = ctrlVersion.sanitizeMany(versions);
 
         expect(cleaned.length).eq(1);
         expect(cleaned[0].name).eq('0.0.0');
@@ -177,7 +223,7 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const cleaned = ctrl.sanitizeMany(versions);
+        const cleaned = ctrlVersion.sanitizeMany(versions);
 
         expect(cleaned.length).eq(1);
         expect(cleaned[0].name).eq(str);
@@ -200,7 +246,7 @@ describe('CtrlPackageVersion', () => {
           },
         ];
 
-        const promise = ctrl.createMany(versions);
+        const promise = ctrlVersion.createMany(versions);
         promise.then((savedVersions) => {
           expect(savedVersions.length).eq(2);
 
@@ -218,5 +264,78 @@ describe('CtrlPackageVersion', () => {
         });
       });
     });
+
+    describe('get', () => {
+      it('should get a version based upon package name and version number', async () => {
+        const versionData: IPackageVersionData = {
+          name: '0.0.0-a',
+          archive: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'package',
+          versions: [versionData],
+          author: user.id,
+        };
+
+        const pack = await ctrlPackage.create(packData);
+        const ver = await ctrlVersion.get(packData.name, versionData.name);
+
+        expect(ver).to.be.ok;
+        expect(ver.id).to.eq(pack.versions[0].id);
+      });
+
+      it('should return an error message if the package does not exist', async () => {
+        const packageName = 'asdf';
+
+        try {
+          const result = await ctrlVersion.get('asdf', 'asdf');
+          expect(result).to.not.be.ok;
+        } catch (err) {
+          expect(err).to.be.ok;
+          expect(err.message).to.contain(`Package ${packageName} could not be found`);
+        }
+      });
+
+      it('should return error message if the version does not exist', async () => {
+        const versionName = '0.0.0';
+
+        const versionData: IPackageVersionData = {
+          name: '0.0.0-a',
+          archive: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'package',
+          versions: [versionData],
+          author: user.id,
+        };
+
+        await ctrlPackage.create(packData);
+
+        try {
+          const result = await ctrlVersion.get(packData.name, versionName);
+          expect(result).to.not.be.ok;
+        } catch (err) {
+          expect(err).to.be.ok;
+          expect(err.message).to.contain(`Package ${packData.name} does not have version ${versionName}`);
+        }
+      });
+    });
+
+    describe('httpGet', () => {
+      xit('should get a version via url `PACKAGE_NAME?`', () => {
+        console.log('placeholder');
+      });
+
+      xit('should error if the package does not exist', () => {
+        console.log('placeholder');
+      });
+
+      xit('should error if the version does not exist', () => {
+        console.log('placeholder');
+      });
+    });
+
   });
 });
