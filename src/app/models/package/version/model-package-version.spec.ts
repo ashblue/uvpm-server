@@ -490,6 +490,26 @@ describe('ModelPackageVersionSchema', () => {
           done();
         });
       });
+
+      xit('should not allow 2 periods', (done) => {
+        console.log('placeholder');
+      });
+
+      xit('should allow 3 periods', (done) => {
+        console.log('placeholder');
+      });
+
+      xit('should allow more than 3 periods', (done) => {
+        console.log('placeholder');
+      });
+
+      xit('should not allow anything after a period to start with a non number', (done) => {
+        console.log('placeholder');
+      });
+
+      xit('should not allow the first character to be a non number', (done) => {
+        console.log('placeholder');
+      });
     });
 
     describe('archive', () => {
