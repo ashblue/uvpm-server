@@ -9,6 +9,9 @@ import { IModelUser } from '../../models/user/i-model-user';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 
+/**
+ * @TODO Decouple from logic in versions
+ */
 export class CtrlPackage {
   public versions: CtrlPackageVersion;
 
