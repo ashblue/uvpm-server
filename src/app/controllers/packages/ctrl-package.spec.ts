@@ -7,6 +7,8 @@ import * as async from 'async';
 import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
+import { appConfig } from '../../helpers/app-config';
+import * as curl from 'request';
 
 const expect = chai.expect;
 
@@ -495,6 +497,96 @@ describe('CtrlPackage', () => {
 
             done();
           });
+      });
+    });
+
+    describe('search', () => {
+      /**
+       * @TODO This is an integration test hack to make things work with Elastic Search.
+       * This should be re-written to use Mongoosastic or Elastic Search JS driver events
+       * to properly wait for async triggers that it's okay to proceed. Currently using
+       * timeouts which is terrible.
+       */
+      beforeEach((done) => {
+        curl.del(`${appConfig.ELASTIC_SEARCH_URL}/_all`, (err) => {
+          if (err) {
+            console.error(err);
+          }
+
+          // Hack to make sure ElasticSearch actually clears
+          setTimeout(done, 500);
+        });
+      });
+
+      it('should return a list of packages', async () => {
+        await ctrl.create({
+          name: 'unity-animation-library',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const pack2 = await ctrl.create({
+          name: 'unity-helpers',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+            {
+              name: '3.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+            {
+              name: '2.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+          ],
+        });
+
+        await ctrl.create({
+          name: 'unity-toolkit',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        // Hack to make sure our results are written to Elastic Search
+        await new Promise((r) => { setTimeout(r, 800); });
+
+        const results = await ctrl.search('unity-helpers');
+
+        expect(results).to.be.ok;
+        expect(results.length).eq(3);
+        expect(results[0].name).eq(pack2.name);
+        expect(results[0].description).eq(pack2.versions[1].description);
+        expect(results[0].author).eq(pack2.author.name);
+        expect(results[0].version).eq(pack2.versions[1].name);
+        expect(results[0].date.getTime()).eq(pack2.versions[1].createdAt.getTime());
+      });
+
+      it('should return an error if no packages are found', async () => {
+        let err: any;
+
+        try {
+          await ctrl.search('unity-helpers');
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
       });
     });
   });

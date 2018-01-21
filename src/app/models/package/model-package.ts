@@ -20,6 +20,7 @@ export class ModelPackageSchema extends ModelBase {
         required: [true, 'Name is required'],
         trim: true,
         unique: true,
+        es_indexed: true,
         // Regex interactive debuggging https://regex101.com/r/4UhVvb/3
         match: [
           /^[a-z0-9]+(-[a-z0-9]+)*$/,

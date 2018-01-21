@@ -15,6 +15,7 @@ export class ModelPackageVersionSchema extends ModelBase {
           'Version name is required',
         ],
         type: String,
+        index: true,
         trim: true,
         match: [
           /^[0-9][-0-9a-z]*([.][0-9]([-]?[0-9a-z])*){2,}$/,

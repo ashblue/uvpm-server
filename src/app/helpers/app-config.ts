@@ -19,6 +19,8 @@ class AppConfig {
   public ROOT_URL = 'http://uvpm.com';
   public ROOT_URL_TEST = 'http://localhost:3000';
 
+  public ELASTIC_SEARCH_URL = 'http://localhost:9200';
+
   /**
    * Check if this is the testing environment
    */

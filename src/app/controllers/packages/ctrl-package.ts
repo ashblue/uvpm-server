@@ -8,6 +8,7 @@ import { ModelCollection } from '../databases/model-collection';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
+import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 
 /**
  * @TODO Decouple from logic in versions
@@ -201,6 +202,82 @@ export class CtrlPackage {
 
           resolve(res);
         });
+    });
+  }
+
+  /**
+   * Retrieve search results for a specific package
+   * @param {string} name
+   * @returns {Promise<IPackageSearchResult[]>}
+   */
+  public search (name: string): Promise<IPackageSearchResult[]> {
+    return new Promise<IPackageSearchResult[]>((resolve, reject) => {
+      this.db.models.Package.search({
+        match: {
+          name: {
+            query: name,
+            fuzziness: 2,
+          },
+        },
+      }, (errEs, results) => {
+        if (errEs) {
+          reject(errEs);
+          return;
+        }
+
+        if (!results) {
+          resolve([]);
+        }
+
+        const packageNameToScore = results.hits.hits.reduce((result, obj, i) => {
+          result[obj._source.name] = obj._score;
+          return result;
+        }, {});
+
+        results.hits.hits.reduce((map, obj) => {
+          return map;
+        });
+
+        const packageNames = results.hits.hits.map((h) => h._source.name);
+        this.db.models.Package
+          .find({ name: packageNames })
+          .populate([
+            {
+              path: 'versions',
+              model: ModelCollection.PACKAGE_VERSION_ID,
+              options: {
+                sort: {
+                  name: -1,
+                },
+              },
+            },
+            {
+              path: 'author',
+            },
+          ])
+          .exec((err, res) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            const searchResults: IPackageSearchResult[] = res
+              .sort((a, b) => {
+                return packageNameToScore[b.name] - packageNameToScore[a.name];
+              })
+              .map((p) => {
+              return {
+                name: p.name,
+                description: p.versions[0].description as string,
+                author: p.author.name,
+                date: p.versions[0].createdAt,
+                version: p.versions[0].name,
+              };
+            });
+
+            resolve(searchResults);
+          });
+      });
     });
   }
 }
