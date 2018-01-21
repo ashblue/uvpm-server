@@ -13,7 +13,10 @@ few extra steps.
 
 ### Running the database
 
+Instead of running MongoDB and Elastic Search separately, you can run both with a simple
+Docker command.
+
 * Download and install [Docker](https://www.docker.com/)
-* Run MongoDB `docker-compose -f docker-compose.mongo.yml up`
-  * Run `docker-compose -f docker-compose.mongo.yml up -d` if you don't want terminal logging
-* When done run `docker-compose -f docker-compose.mongo.yml down` to properly shut down the database
+* Spin up the database `docker-compose -f docker-compose.dev.yml up`
+  * Run `docker-compose -f docker-compose.dev.yml up -d` if you don't want terminal logging
+* When done run `docker-compose -f docker-compose.dev.yml down` to properly shut down the database
