@@ -4,7 +4,7 @@ import { IPackageVersionData } from '../../../models/package/version/i-package-v
 import { ModelCollection } from '../../databases/model-collection';
 import { IModelPackage } from '../../../models/package/i-model-package';
 import * as express from 'express';
-import { IExpressRequest } from '../../../helpers/interfaces/i-express-request';
+import { IExpressRequest } from '../../../interfaces/i-express-request';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class

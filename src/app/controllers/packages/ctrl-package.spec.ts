@@ -7,8 +7,8 @@ import * as async from 'async';
 import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
-import { appConfig } from '../../helpers/app-config';
-import * as curl from 'request';
+import { IPackageSearchResult } from '../../models/package/i-package-search-result';
+import { esHelpers } from '../../helpers/es-helpers';
 
 const expect = chai.expect;
 
@@ -43,6 +43,7 @@ describe('CtrlPackage', () => {
 
   describe('when initialized', () => {
     const routePackages = '/packages';
+    const routeSearch = `${routePackages}/search`;
 
     let ctrl: CtrlPackage;
     let user: IModelUser;
@@ -60,6 +61,10 @@ describe('CtrlPackage', () => {
 
       app.express.get(`${routePackages}/:idPackage`, (req, res) => {
         ctrl.httpGet(req, res);
+      });
+
+      app.express.get(`${routeSearch}/:packageName`, (req, res) => {
+        ctrl.httpSearch(req, res);
       });
 
       const userDetails = {
@@ -501,21 +506,8 @@ describe('CtrlPackage', () => {
     });
 
     describe('search', () => {
-      /**
-       * @TODO This is an integration test hack to make things work with Elastic Search.
-       * This should be re-written to use Mongoosastic or Elastic Search JS driver events
-       * to properly wait for async triggers that it's okay to proceed. Currently using
-       * timeouts which is terrible.
-       */
       beforeEach((done) => {
-        curl.del(`${appConfig.ELASTIC_SEARCH_URL}/_all`, (err) => {
-          if (err) {
-            console.error(err);
-          }
-
-          // Hack to make sure ElasticSearch actually clears
-          setTimeout(done, 500);
-        });
+        esHelpers.resetElasticSearch(done);
       });
 
       it('should return a list of packages', async () => {
@@ -587,6 +579,90 @@ describe('CtrlPackage', () => {
         }
 
         expect(err).to.be.ok;
+      });
+    });
+
+    describe('httpSearch', () => {
+      beforeEach((done) => {
+        esHelpers.resetElasticSearch(done);
+      });
+
+      it('should return search results', async () => {
+        await ctrl.create({
+          name: 'unity-animation-library',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const pack2 = await ctrl.create({
+          name: 'unity-helpers',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+            {
+              name: '3.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+            {
+              name: '2.0.0',
+              archive: 'asdf',
+              description: 'my description',
+            },
+          ],
+        });
+
+        await ctrl.create({
+          name: 'unity-toolkit',
+          author: user.id,
+          versions: [
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        await new Promise((r) => { setTimeout(r, 800); });
+
+        await request(app.express)
+          .get(`${routeSearch}/unity%20helpers`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((result) => {
+            const ps: IPackageSearchResult[] = result.body;
+            expect(ps).to.be.ok;
+            expect(ps.length).to.eq(3);
+
+            const r = ps[0];
+            expect(r).to.be.ok;
+            expect(r.name).eq(pack2.name);
+            expect(r.description).eq(pack2.versions[1].description);
+            expect(r.author).eq(pack2.author.name);
+            expect(r.version).eq(pack2.versions[1].name);
+            expect(r.date).to.be.ok;
+          });
+      });
+
+      it('should return an empty array if the search fails', async () => {
+        await request(app.express)
+          .get(`${routeSearch}/unity-help`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((result) => {
+            const ps: IPackageSearchResult[] = result.body;
+            expect(ps).to.be.ok;
+            expect(ps.length).to.eq(0);
+          });
       });
     });
   });

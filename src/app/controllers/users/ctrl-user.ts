@@ -5,7 +5,7 @@ import jwt = require('jwt-simple');
 import passport = require('passport');
 import passportJWT = require('passport-jwt');
 import { Database } from '../databases/database';
-import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
+import { IExpressRequest } from '../../interfaces/i-express-request';
 
 export class CtrlUser {
   constructor (private db: Database) {

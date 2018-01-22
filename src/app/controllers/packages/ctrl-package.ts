@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { IExpressRequest } from '../../helpers/interfaces/i-express-request';
+import { IExpressRequest } from '../../interfaces/i-express-request';
 import * as async from 'async';
 import { Database } from '../databases/database';
 import { CtrlPackageVersion } from './versions/ctrl-package-version';
@@ -79,6 +79,23 @@ export class CtrlPackage {
         res
           .status(400)
           .json(err);
+      });
+  }
+
+  public httpSearch = (req: IExpressRequest, res: express.Response) => {
+    const name: string = req.params.packageName;
+
+    this.search(name)
+      .then((results) => {
+        if (!results) {
+          res.json([]);
+          return;
+        }
+
+        res.json(results);
+      })
+      .catch((err) => {
+        res.json([]);
       });
   }
 
@@ -229,7 +246,7 @@ export class CtrlPackage {
           resolve([]);
         }
 
-        const packageNameToScore = results.hits.hits.reduce((result, obj, i) => {
+        const packageNameToScore = results.hits.hits.reduce((result, obj) => {
           result[obj._source.name] = obj._score;
           return result;
         }, {});

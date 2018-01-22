@@ -6,7 +6,7 @@ import { ModelPackageSchema } from '../../models/package/model-package';
 import { ModelPackageVersionSchema } from '../../models/package/version/model-package-version';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 import * as mongoose from 'mongoose';
-import { IEsModel } from '../../helpers/interfaces/elastic-search/i-es-model';
+import { IEsModel } from '../../interfaces/elastic-search/i-es-model';
 import { IEsPackageHit } from '../../models/package/i-es-package-hit';
 
 import mongoosastic = require('mongoosastic');
