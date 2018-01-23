@@ -297,4 +297,34 @@ export class CtrlPackage {
       });
     });
   }
+
+  /**
+   * Remove a package by name with all associated version data
+   * @param {string} name
+   * @returns {Promise}
+   */
+  public destroy (name: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.db.models.Package.findOne({ name }, (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (!res) {
+          reject({ message: `Could not find package ID ${name}` });
+          return;
+        }
+
+        res.remove((errRemove) => {
+          if (errRemove) {
+            reject(errRemove);
+            return;
+          }
+
+          resolve();
+        });
+      });
+    });
+  }
 }

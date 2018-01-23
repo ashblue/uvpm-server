@@ -9,6 +9,7 @@ import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import { esHelpers } from '../../helpers/es-helpers';
+import * as fs from 'fs';
 
 const expect = chai.expect;
 
@@ -502,6 +503,109 @@ describe('CtrlPackage', () => {
 
             done();
           });
+      });
+    });
+
+    describe('destroy', () => {
+      it('should remove the package, all associated versions, and version files', async () => {
+        const pack = await ctrl.create({
+          name: 'my-package',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        await ctrl.destroy(pack.name);
+
+        // Verify everything has been properly destroyed
+        await new Promise((resolve) => {
+          async.parallel([
+            (callback) => {
+              app.db.models.Package.findById(pack.id, (err, res: any) => {
+                callback(err, res);
+              });
+            },
+            (callback) => {
+              app.db.models.PackageVersion.find({
+                _id: {
+                  $in: pack.versions.map((v) => v.id),
+                },
+              }, (err, res: any) => {
+                callback(err, res);
+              });
+            },
+            (callback) => {
+              const files = pack.versions.map((v) => v.archive);
+              for (const f in files) {
+                if (fs.existsSync(f)) {
+                  callback(`File ${f} should not exist`, undefined);
+                  return;
+                }
+              }
+
+              callback(undefined, undefined);
+            },
+          ], (err, results) => {
+            expect(err).to.be.not.ok;
+
+            // Everything should be empty, results means data did not clean up correctly
+            if (results) {
+              results.forEach((r) => {
+                if (Array.isArray(r)) {
+                  r.forEach((a) => {
+                    expect(a).to.be.not.ok;
+                  });
+
+                  return;
+                }
+
+                expect(r).to.not.be.ok;
+              });
+            }
+
+            resolve();
+          });
+        });
+      });
+
+      it('should fail if the package does not exist', async () => {
+        const name = 'non existent name';
+        let err: any;
+
+        try {
+          await ctrl.destroy(name);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
+        expect(err.message).to.contain(`Could not find package ID ${name}`);
+      });
+    });
+
+    describe('httpDestroy', () => {
+      xit('should allow the author to remove the package, all associated versions, and files', () => {
+        console.log('placeholder');
+      });
+
+      xit('should return an error message if the package cannot be found', () => {
+        console.log('placeholder');
+      });
+
+      xit('should not allow an anonymous user to delete a package', () => {
+        console.log('placeholder');
+      });
+
+      xit('should not allow a user other than the author to delete a package', () => {
+        console.log('placeholder');
       });
     });
 
