@@ -99,6 +99,39 @@ export class CtrlPackage {
       });
   }
 
+  public httpDestroy = (req: IExpressRequest, res: express.Response) => {
+    const user = req.user as IModelUser;
+    const packName: string = req.params.idPackage;
+
+    if (!user) {
+      res.status(401)
+        .json({ message: 'Authentication failed' });
+      return;
+    }
+
+    this.get(packName)
+      .then((pack) => {
+        if (pack.author.id !== user.id) {
+          res.status(401)
+            .json({ message: 'You cannot delete this package' });
+          return;
+        }
+
+        this.destroy(packName)
+          .then(() => {
+            res.json({ messsage: `Successfully removed package ${packName}` });
+          })
+          .catch((err) => {
+            res.status(400)
+              .json(err);
+          });
+      })
+      .catch((err) => {
+        res.status(400)
+          .json({ message: `Could not find package ID ${packName}` });
+      });
+  }
+
   /**
    * Create a package and attach a corresponding user
    * @param {IPackageData} pack

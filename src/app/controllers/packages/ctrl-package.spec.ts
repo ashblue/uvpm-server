@@ -10,8 +10,36 @@ import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import { esHelpers } from '../../helpers/es-helpers';
 import * as fs from 'fs';
+import { IUserLogin } from '../../models/user/i-user-login';
 
 const expect = chai.expect;
+
+/**
+ * @TODO Move to a helper file
+ * @param {App} app
+ * @param {string} name
+ * @param {string} email
+ * @param {string} password
+ * @returns {IUserLogin}
+ */
+async function createUser (app: App, name: string, email: string, password: string): Promise<IUserLogin> {
+  const user = { name, email, password };
+
+  await request(app.express)
+    .post('/api/v1/users')
+    .send(user)
+    .expect(200)
+    .expect('Content-Type', /json/);
+
+  return await request(app.express)
+    .post('/api/v1/users/login')
+    .send(user)
+    .expect(200)
+    .expect('Content-Type', /json/)
+    .then((result) => {
+      return result.body;
+    });
+}
 
 describe('CtrlPackage', () => {
   let app: App;
@@ -62,6 +90,12 @@ describe('CtrlPackage', () => {
 
       app.express.get(`${routePackages}/:idPackage`, (req, res) => {
         ctrl.httpGet(req, res);
+      });
+
+      app.express.delete(`${routePackages}/:idPackage`, (req, res, next) => {
+        app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
+          ctrl.httpDestroy(req, res);
+        });
       });
 
       app.express.get(`${routeSearch}/:packageName`, (req, res) => {
@@ -592,20 +626,82 @@ describe('CtrlPackage', () => {
     });
 
     describe('httpDestroy', () => {
-      xit('should allow the author to remove the package, all associated versions, and files', () => {
-        console.log('placeholder');
+      let pack: IModelPackage;
+
+      beforeEach( (done) => {
+        ctrl.create({
+          name: 'my-package',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        }).then((p) => {
+          pack = p;
+          done();
+        });
       });
 
-      xit('should return an error message if the package cannot be found', () => {
-        console.log('placeholder');
+      it('should allow the author to remove the package', async () => {
+        await request(app.express)
+          .del(`${routePackages}/${pack.name}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            expect(res).to.be.ok;
+          });
       });
 
-      xit('should not allow an anonymous user to delete a package', () => {
-        console.log('placeholder');
+      it('should return an error message if the package cannot be found', async () => {
+        const fakePackName = 'NON_EXISTENT_ID';
+
+        await request(app.express)
+          .del(`${routePackages}/${fakePackName}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+            expect(res.body.message).to.eq(`Could not find package ID ${fakePackName}`);
+          });
       });
 
-      xit('should not allow a user other than the author to delete a package', () => {
-        console.log('placeholder');
+      it('should not allow an anonymous user to delete a package', async () => {
+        await request(app.express)
+          .del(`${routePackages}/${pack.name}`)
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+            expect(res.body.message).to.eq('Authentication failed');
+          });
+      });
+
+      it('should not allow a user other than the author to delete a package', async () => {
+        const userAlt = await createUser(app, 'new user', 'dkjfdkjfdkj@adsf.com', '12345asdf');
+
+        await request(app.express)
+          .del(`${routePackages}/${pack.name}`)
+          .set('Authorization', `Bearer ${userAlt.token}`)
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+            expect(res.body.message).to.eq(`You cannot delete this package`);
+          });
       });
     });
 
