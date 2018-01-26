@@ -417,5 +417,51 @@ describe('CtrlPackageVersion', () => {
       });
     });
 
+    describe('add', () => {
+      it('should add a new version to an existing package', async () => {
+        const versionData: IPackageVersionData = {
+          name: '0.0.0',
+          archive: 'asdf',
+        };
+
+        const versionAltData: IPackageVersionData = {
+          name: '1.0.0',
+          archive: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'my-pack-single-ver',
+          author: user.id,
+          versions: [versionData],
+        };
+
+        const pack = await ctrlPackage.create(packData);
+        const versionAlt = await ctrlVersion.add(pack.name, versionAltData);
+        expect(versionAlt).to.be.ok;
+
+        const packUpdate = await ctrlPackage.get(pack.name);
+        expect(packUpdate).to.be.ok;
+        expect(packUpdate.id).to.eq(pack.id);
+        expect(packUpdate.versions.length).to.eq(2);
+
+        const versionAltCopy = packUpdate.versions.find((v) => v.name === versionAltData.name);
+        expect(versionAltCopy).to.be.ok;
+        if (versionAltCopy) {
+          expect(versionAltCopy.id).to.eq(versionAlt.id);
+        }
+      });
+
+      xit('should fail if the package does not exist', () => {
+        console.log('placeholder');
+      });
+
+      xit('should fail if the version data is incomplete', () => {
+        console.log('placeholder');
+      });
+
+      xit('should fail if the version number already exists on the model', () => {
+        console.log('placeholder');
+      });
+    });
   });
 });

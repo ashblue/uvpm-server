@@ -5,6 +5,7 @@ import { ModelCollection } from '../../databases/model-collection';
 import { IModelPackage } from '../../../models/package/i-model-package';
 import * as express from 'express';
 import { IExpressRequest } from '../../../interfaces/i-express-request';
+import * as async from 'async';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
@@ -119,6 +120,78 @@ export class CtrlPackageVersion {
 
           resolve(verResult);
         });
+    });
+  }
+
+  public add (packageName: string, data: IPackageVersionData): Promise<IModelPackageVersion> {
+    return new Promise<IModelPackageVersion>((resolve, reject) => {
+      let pack: IModelPackage;
+      let version: IModelPackageVersion;
+
+      async.series([
+        (callback) => {
+          this.db.models.Package.findOne({
+            name: packageName,
+          }, (err, res) => {
+            if (err) {
+              callback(err, undefined);
+              return;
+            }
+
+            if (!res) {
+              callback(`Package ${packageName} could not be found`, undefined);
+              return;
+            }
+
+            pack = res;
+            callback(undefined, undefined);
+          });
+        },
+        (callback) => {
+          this.create(data, (err, res) => {
+            if (err) {
+              callback(err, undefined);
+              return;
+            }
+
+            if (!res) {
+              callback(`Package version details are invalid`, undefined);
+              return;
+            }
+
+            version = res;
+            callback(undefined, undefined);
+          });
+        },
+        (callback) => {
+          pack.versions.push(version.id);
+
+          pack.save((err) => {
+            if (err) {
+              callback(err, undefined);
+              return;
+            }
+
+            callback(undefined, undefined);
+          });
+        },
+      ], (err) => {
+        if (!err) {
+          resolve(version);
+          return;
+        }
+
+        if (version) {
+          version.remove((versionRemoveErr) => {
+            if (err) {
+              console.error(versionRemoveErr);
+            }
+          });
+        }
+
+        reject(err);
+      });
+
     });
   }
 
