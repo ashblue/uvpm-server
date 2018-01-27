@@ -451,16 +451,104 @@ describe('CtrlPackageVersion', () => {
         }
       });
 
-      xit('should fail if the package does not exist', () => {
-        console.log('placeholder');
+      it('should fail if the package does not exist', async () => {
+        const versionData: IPackageVersionData = {
+          name: '0.0.0',
+          archive: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'my-pack-single-ver',
+          author: user.id,
+          versions: [versionData],
+        };
+
+        let err;
+        try {
+          await ctrlVersion.add(packData.name, versionData);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
+        expect(err).to.eq(`Package ${packData.name} could not be found`);
+
+        const version = await db.models.PackageVersion.findOne({
+          name: versionData.name,
+        });
+
+        expect(version).to.not.be.ok;
       });
 
-      xit('should fail if the version data is incomplete', () => {
-        console.log('placeholder');
+      it('should fail if the version data is incomplete', async () => {
+        const versionData: IPackageVersionData = {
+          name: '0.0.0',
+          archive: 'asdf',
+        };
+
+        const versionAltData: any = {
+          name: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'my-pack-single-ver',
+          author: user.id,
+          versions: [versionData],
+        };
+
+        const pack = await ctrlPackage.create(packData);
+
+        let err: any;
+        try {
+          await ctrlVersion.add(pack.name, versionAltData);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
+        expect(err.errors.name.message).to.contain('Version name only supports');
+
+        const version = await db.models.PackageVersion.findOne({
+          name: versionAltData.name,
+        });
+
+        expect(version).to.not.be.ok;
       });
 
-      xit('should fail if the version number already exists on the model', () => {
-        console.log('placeholder');
+      it('should fail if the version number already exists on the model', async () => {
+        const versionData: IPackageVersionData = {
+          name: '0.0.0',
+          archive: 'asdf',
+        };
+
+        const versionAltData: IPackageVersionData = {
+          name: '0.0.0',
+          archive: 'asdf',
+        };
+
+        const packData: IPackageData = {
+          name: 'my-pack-single-ver',
+          author: user.id,
+          versions: [versionData],
+        };
+
+        const pack = await ctrlPackage.create(packData);
+
+        let err: any;
+        try {
+          await ctrlVersion.add(pack.name, versionAltData);
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
+        expect(err.errors.versions.message).to.contain('unique name');
+
+        const versions = await db.models.PackageVersion.find({
+          name: versionAltData.name,
+        });
+
+        expect(versions.length).to.eq(1);
       });
     });
   });

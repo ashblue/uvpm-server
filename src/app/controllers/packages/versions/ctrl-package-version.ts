@@ -186,10 +186,12 @@ export class CtrlPackageVersion {
             if (err) {
               console.error(versionRemoveErr);
             }
-          });
-        }
 
-        reject(err);
+            reject(err);
+          });
+        } else {
+          reject(err);
+        }
       });
 
     });
