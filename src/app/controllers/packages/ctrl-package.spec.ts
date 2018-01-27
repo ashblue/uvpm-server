@@ -10,36 +10,9 @@ import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import { esHelpers } from '../../helpers/es-helpers';
 import * as fs from 'fs';
-import { IUserLogin } from '../../models/user/i-user-login';
+import { userHelpers } from '../../helpers/user-helpers';
 
 const expect = chai.expect;
-
-/**
- * @TODO Move to a helper file
- * @param {App} app
- * @param {string} name
- * @param {string} email
- * @param {string} password
- * @returns {IUserLogin}
- */
-async function createUser (app: App, name: string, email: string, password: string): Promise<IUserLogin> {
-  const user = { name, email, password };
-
-  await request(app.express)
-    .post('/api/v1/users')
-    .send(user)
-    .expect(200)
-    .expect('Content-Type', /json/);
-
-  return await request(app.express)
-    .post('/api/v1/users/login')
-    .send(user)
-    .expect(200)
-    .expect('Content-Type', /json/)
-    .then((result) => {
-      return result.body;
-    });
-}
 
 describe('CtrlPackage', () => {
   let app: App;
@@ -689,7 +662,7 @@ describe('CtrlPackage', () => {
       });
 
       it('should not allow a user other than the author to delete a package', async () => {
-        const userAlt = await createUser(app, 'new user', 'dkjfdkjfdkj@adsf.com', '12345asdf');
+        const userAlt = await userHelpers.createUser(app, 'new user', 'dkjfdkjfdkj@adsf.com', '12345asdf');
 
         await request(app.express)
           .del(`${routePackages}/${pack.name}`)

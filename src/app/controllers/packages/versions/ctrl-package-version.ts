@@ -6,6 +6,7 @@ import { IModelPackage } from '../../../models/package/i-model-package';
 import * as express from 'express';
 import { IExpressRequest } from '../../../interfaces/i-express-request';
 import * as async from 'async';
+import { IModelUser } from '../../../models/user/i-model-user';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
@@ -183,7 +184,7 @@ export class CtrlPackageVersion {
 
         if (version) {
           version.remove((versionRemoveErr) => {
-            if (err) {
+            if (versionRemoveErr) {
               console.error(versionRemoveErr);
             }
 
@@ -193,8 +194,54 @@ export class CtrlPackageVersion {
           reject(err);
         }
       });
-
     });
+  }
+
+  public httpAdd = (req: IExpressRequest, res: express.Response) => {
+    const idPackage: string = req.params.idPackage;
+    const data: IPackageVersionData = req.body;
+    const user = req.user as IModelUser;
+
+    async.series([
+      (callback) => {
+        this.db.models.Package
+          .findOne({ name: idPackage })
+          .populate('author')
+          .exec((errPack, pack) => {
+            if (errPack) {
+              callback(errPack);
+              return;
+            }
+
+            if (!pack) {
+              callback(`Requested package ${idPackage} does not exist`);
+              return;
+            }
+
+            if (pack.author.id !== user.id) {
+              callback(`You are not authorized to do that`);
+              return;
+            }
+
+            callback(undefined, undefined);
+          });
+      },
+      (callback) => {
+        this.add(idPackage, data)
+          .then((version) => {
+            res.json(version);
+            callback(undefined, undefined);
+          })
+          .catch((err) => {
+            callback(err);
+          });
+      },
+    ], ((err) => {
+      if (err) {
+        res.status(400)
+          .json({ message: err });
+      }
+    }));
   }
 
   public httpGet = (req: IExpressRequest, res: express.Response) => {

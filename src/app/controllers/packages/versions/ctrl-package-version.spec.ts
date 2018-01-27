@@ -12,6 +12,7 @@ import { App } from '../../../app';
 const expect = chai.expect;
 import request = require('supertest');
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
+import { userHelpers } from '../../../helpers/user-helpers';
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -49,7 +50,7 @@ describe('CtrlPackageVersion', () => {
     let ctrlPackage: CtrlPackage;
     let fileBase64: string;
     let user: IModelUser;
-    // let token: string;
+    let token: string;
 
     beforeEach((done) => {
       ctrlPackage = new CtrlPackage(db);
@@ -85,7 +86,7 @@ describe('CtrlPackageVersion', () => {
                   expect(err2).to.not.be.ok;
                   expect(res2.body).to.haveOwnProperty('user');
 
-                  // token = `Bearer ${res2.body.token}`;
+                  token = `Bearer ${res2.body.token}`;
                   user = res2.body.user;
 
                   callback();
@@ -413,6 +414,135 @@ describe('CtrlPackageVersion', () => {
             expect(v).to.be.ok;
             expect(v.message).to.be.ok;
             expect(v.message).to.eq(`Package ${packId} does not have version ${verId}`);
+          });
+      });
+    });
+
+    describe('httpAdd', () => {
+      beforeEach(() => {
+        app.express.post(`/packages/:idPackage/versions`, (req, res, next) => {
+          app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
+            ctrlVersion.httpAdd(req, res);
+          });
+        });
+      });
+
+      it('should add a version to a package', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const packNew: IPackageVersionData = {
+          name: '1.0.0',
+          archive: 'asdf',
+        };
+
+        await request(app.express)
+          .post(`/packages/${pack.name}/versions`)
+          .send(packNew)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((result) => {
+            const v: IModelPackageVersion = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.id).to.be.ok;
+            expect(v.name).to.eq(packNew.name);
+            expect(v.archive).to.be.ok;
+          });
+      });
+
+      it('should error if the package ID does not exist', async () => {
+        const packName = 'pack-name';
+        const packNew: IPackageVersionData = {
+          name: '1.0.0',
+          archive: 'asdf',
+        };
+
+        await request(app.express)
+          .post(`/packages/${packName}/versions`)
+          .send(packNew)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((result) => {
+            const v: {message: string} = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.message).to.contain(packName);
+          });
+      });
+
+      it('should error if the user is not authenticated', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const packNew: IPackageVersionData = {
+          name: '1.0.0',
+          archive: 'asdf',
+        };
+
+        await request(app.express)
+          .post(`/packages/${pack.name}/versions`)
+          .send(packNew)
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((result) => {
+            const v: {message: string} = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.message).to.be.ok;
+            expect(v.message).to.contain('Authentication failed');
+          });
+      });
+
+      it('should not allow someone other than the package author to add a version', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const newUser = await userHelpers.createUser(app, 'joe', 'jow@gmail.com', 'asdfasdf1');
+
+        const packNew: IPackageVersionData = {
+          name: '1.0.0',
+          archive: 'asdf',
+        };
+
+        await request(app.express)
+          .post(`/packages/${pack.name}/versions`)
+          .send(packNew)
+          .set('Authorization', `Bearer ${newUser.token}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((result) => {
+            const v: { message: string } = result.body;
+
+            expect(v).to.be.ok;
+            expect(v.message).to.be.ok;
+            expect(v.message).to.eq('You are not authorized to do that');
           });
       });
     });
