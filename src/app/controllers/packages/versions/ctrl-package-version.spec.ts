@@ -713,20 +713,143 @@ describe('CtrlPackageVersion', () => {
         expect(packUpdate.versions[0].id).to.eq(pack.versions[0].id);
       });
 
-      xit('should fail if the package is missing', () => {
-        console.log('placeholder');
+      it('should fail if the package does not exist', async () => {
+        let e: any;
+
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        try {
+          await ctrlVersion.destroy('asdf', pack.versions[0].name);
+        } catch (err) {
+          e = err;
+        }
+
+        const version = await db.models.PackageVersion.findById(pack.versions[0].id);
+
+        expect(e).to.be.ok;
+        expect(e.message).to.be.ok;
+        expect(e.message).to.contain(`Package asdf could not be found`);
+
+        expect(version).to.be.ok;
       });
 
-      xit('should fail if the package version is missing', () => {
-        console.log('placeholder');
+      it('should fail if the package version is missing', async () => {
+        let e: any;
+
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        try {
+          await ctrlVersion.destroy(pack.name, 'asdf');
+        } catch (err) {
+          e = err;
+        }
+
+        expect(e).to.be.ok;
+        expect(e.message).to.be.ok;
+        expect(e.message).to.contain(`Package ${pack.name} does not have version asdf`);
       });
 
-      xit('should fail if this is the last version on a package', () => {
-        console.log('placeholder');
+      it('should fail if this is the last version on a package', async () => {
+        let e: any;
+
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        try {
+          await ctrlVersion.destroy(pack.name, pack.versions[0].name);
+        } catch (err) {
+          e = err;
+        }
+
+        const version = await db.models.PackageVersion.findById(pack.versions[0].id);
+
+        expect(e).to.be.ok;
+        expect(e).to.contain(`You cannot remove the last version on a package`);
+
+        expect(version).to.be.ok;
       });
 
-      xit('should fail if the package version is not on the package', () => {
-        console.log('placeholder');
+      it('should fail if the package version is not on the requested package', async () => {
+        let e: any;
+
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const packAlt = await ctrlPackage.create({
+          name: 'my-pack-alt',
+          author: user.id,
+          versions: [
+            {
+              name: '4.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '5.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        try {
+          await ctrlVersion.destroy(pack.name, packAlt.versions[0].name);
+        } catch (err) {
+          e = err;
+        }
+
+        const version = await db.models.PackageVersion.findById(packAlt.versions[0].id);
+
+        expect(e).to.be.ok;
+        expect(e.message).to.be.ok;
+        expect(e.message).to.contain(
+          `Package ${pack.name} does not have version ${packAlt.versions[0].name}`);
+
+        expect(version).to.be.ok;
       });
     });
   });

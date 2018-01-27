@@ -130,6 +130,21 @@ export class CtrlPackageVersion {
     return new Promise<void>((resolve, reject) => {
       async.series([
         (callback) => {
+          this.db.models.Package.findOne({ name: packageName })
+            .then((result) => {
+              if (result && result.versions.length <= 1) {
+                callback(`You cannot remove the last version on a package.
+                Please add another version or destroy the package itself`);
+                return;
+              }
+
+              callback();
+            })
+            .catch((err) => {
+              callback(err);
+            });
+        },
+        (callback) => {
           this.get(packageName, versionName)
             .then((result) => {
               version = result;
