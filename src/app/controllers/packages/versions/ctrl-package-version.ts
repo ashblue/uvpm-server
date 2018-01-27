@@ -304,4 +304,44 @@ export class CtrlPackageVersion {
           .json(err);
       });
   }
+
+  public httpDestroy = (req: IExpressRequest, res: express.Response) => {
+    const packName: string = req.params.idPackage;
+    const versionName: string = req.params.idVersion;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401)
+        .json({ message: 'Authentication failed' });
+      return;
+    }
+
+    async.series([
+      (callback) => {
+        this.db.models.Package.findOne({ name: packName })
+          .populate('author')
+          .then((pack) => {
+            if (pack && pack.author.id !== user.id) {
+              callback('You are not the package author');
+              return;
+            }
+
+            callback();
+          });
+      },
+      (callback) => {
+        this.destroy(packName, versionName)
+          .then(() => callback())
+          .catch((err) => callback(err));
+      },
+    ], (err, results) => {
+      if (err) {
+        res.status(400)
+          .json({ message: err });
+        return;
+      }
+
+      res.json({ message: 'Package removed' });
+    });
+  }
 }

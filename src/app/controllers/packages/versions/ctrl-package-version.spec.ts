@@ -852,5 +852,160 @@ describe('CtrlPackageVersion', () => {
         expect(version).to.be.ok;
       });
     });
+
+    describe('httpDestroy', () => {
+      beforeEach(() => {
+        app.express.delete(`/packages/:idPackage/versions/:idVersion`, (req, res, next) => {
+          app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
+            ctrlVersion.httpDestroy(req, res);
+          });
+        });
+      });
+
+      it('should destroy a version', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const version = pack.versions[1];
+
+        await request(app.express)
+          .del(`/packages/${pack.name}/versions/${version.name}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+
+            const message = res.body.message;
+            expect(message).to.contain('Package removed');
+          });
+
+        const versionUpdate = await db.models.PackageVersion.findById(version.id);
+        expect(versionUpdate).to.not.be.ok;
+      });
+
+      it('should fail if a user is not provided', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const version = pack.versions[1];
+
+        await request(app.express)
+          .del(`/packages/${pack.name}/versions/${version.name}`)
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+
+            const message = res.body.message;
+            expect(message).to.contain('Authentication failed');
+          });
+
+        const versionUpdate = await db.models.PackageVersion.findById(version.id);
+        expect(versionUpdate).to.be.ok;
+      });
+
+      it('should fail if the user is not the package author', async () => {
+        const userAlt = await userHelpers.createUser(app, 'Roger', 'roger@gmail.com', 'asdf12341');
+
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const version = pack.versions[1];
+
+        await request(app.express)
+          .del(`/packages/${pack.name}/versions/${version.name}`)
+          .set('Authorization', `Bearer ${userAlt.token}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+
+            const message = res.body.message;
+            expect(message).to.contain('You are not the package author');
+          });
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
+
+        const versionUpdate = await db.models.PackageVersion.findById(version.id);
+        expect(versionUpdate).to.be.ok;
+      });
+
+      it('should return an error if deletion fails', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const version = pack.versions[0];
+
+        await request(app.express)
+          .del(`/packages/${pack.name}/versions/${version.name}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.message).to.be.ok;
+
+            const message = res.body.message;
+            expect(message).to.contain('You cannot remove the last version on a package');
+          });
+
+        const versionUpdate = await db.models.PackageVersion.findById(version.id);
+        expect(versionUpdate).to.be.ok;
+      });
+    });
   });
 });
