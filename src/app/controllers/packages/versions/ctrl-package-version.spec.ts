@@ -13,6 +13,7 @@ const expect = chai.expect;
 import request = require('supertest');
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 import { userHelpers } from '../../../helpers/user-helpers';
+import { existsSync } from 'fs';
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -679,6 +680,53 @@ describe('CtrlPackageVersion', () => {
         });
 
         expect(versions.length).to.eq(1);
+      });
+    });
+
+    describe('destroy', () => {
+      it('should delete a package version with a package ID and version ID', async () => {
+        const pack = await ctrlPackage.create({
+          name: 'my-pack',
+          author: user.id,
+          versions: [
+            {
+              name: '0.0.0',
+              archive: 'asdf',
+            },
+            {
+              name: '1.0.0',
+              archive: 'asdf',
+            },
+          ],
+        });
+
+        const ver1 = pack.versions[1];
+        await ctrlVersion.destroy(pack.name, ver1.name);
+
+        const version = await db.models.PackageVersion.findById(ver1.id);
+        expect(version).to.not.be.ok;
+        expect(existsSync(ver1.archive)).to.not.be.ok;
+
+        const packUpdate = await ctrlPackage.get(pack.name);
+        expect(packUpdate).to.be.ok;
+        expect(packUpdate.versions.length).to.eq(1);
+        expect(packUpdate.versions[0].id).to.eq(pack.versions[0].id);
+      });
+
+      xit('should fail if the package is missing', () => {
+        console.log('placeholder');
+      });
+
+      xit('should fail if the package version is missing', () => {
+        console.log('placeholder');
+      });
+
+      xit('should fail if this is the last version on a package', () => {
+        console.log('placeholder');
+      });
+
+      xit('should fail if the package version is not on the package', () => {
+        console.log('placeholder');
       });
     });
   });

@@ -124,6 +124,37 @@ export class CtrlPackageVersion {
     });
   }
 
+  public destroy (packageName: string, versionName: string): Promise<void> {
+    let version: IModelPackageVersion;
+
+    return new Promise<void>((resolve, reject) => {
+      async.series([
+        (callback) => {
+          this.get(packageName, versionName)
+            .then((result) => {
+              version = result;
+              callback();
+            })
+            .catch((err) => {
+              callback(err);
+            });
+        },
+        (callback) => {
+          version.remove((err) => {
+            callback(err);
+          });
+        },
+      ], (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+
   public add (packageName: string, data: IPackageVersionData): Promise<IModelPackageVersion> {
     return new Promise<IModelPackageVersion>((resolve, reject) => {
       let pack: IModelPackage;
