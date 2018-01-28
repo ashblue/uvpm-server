@@ -19,7 +19,7 @@ describe('App', () => {
 
     it('should default to testing the test database for tests', (done) => {
       app = new App();
-      app.db.connection.once('open', () => {
+      app.db.connection.once('connected', () => {
         expect(app.db.url).to.equal(appConfig.DB_TEST_URL);
         app.db.closeConnection(done);
       });
@@ -29,7 +29,7 @@ describe('App', () => {
       process.env.TEST = 'true';
 
       app = new App();
-      app.db.connection.once('open', () => {
+      app.db.connection.once('connected', () => {
         expect(app.db.url).to.equal(appConfig.DB_TEST_URL);
         app.db.closeConnection(done);
       });
@@ -39,7 +39,7 @@ describe('App', () => {
       process.env.TEST = 'false';
 
       app = new App();
-      app.db.connection.once('open', () => {
+      app.db.connection.once('connected', () => {
         expect(app.db.url).to.equal(appConfig.DB_DEFAULT_URL);
         app.db.closeConnection(done);
       });
@@ -70,7 +70,7 @@ describe('App', () => {
   describe('after initializing', () => {
     beforeEach((done) => {
       app = new App();
-      app.db.connection.once('open', done);
+      app.db.connection.once('connected', done);
     });
 
     afterEach((done) => {

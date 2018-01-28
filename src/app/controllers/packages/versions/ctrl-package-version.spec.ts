@@ -1,5 +1,4 @@
 import { Database } from '../../databases/database';
-import { CtrlUser } from '../../users/ctrl-user';
 import * as async from 'async';
 import * as chai from 'chai';
 import { CtrlPackageVersion } from './ctrl-package-version';
@@ -21,7 +20,7 @@ describe('CtrlPackageVersion', () => {
 
   beforeEach((done) => {
     app = new App();
-    app.db.connection.once('open', () => {
+    app.db.connection.once('connected', () => {
       db = app.db;
       db.connection.db.dropDatabase().then(() => {
         done();
@@ -41,7 +40,7 @@ describe('CtrlPackageVersion', () => {
   });
 
   it('should initialize', () => {
-    const ctrl = new CtrlUser(db);
+    const ctrl = new CtrlPackageVersion(db);
 
     expect(ctrl).to.be.ok;
   });
