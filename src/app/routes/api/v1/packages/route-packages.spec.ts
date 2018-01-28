@@ -32,7 +32,7 @@ describe('RoutePackages', () => {
   });
 
   it('should initialize', () => {
-    expect(app.routes.v1.users).to.be.ok;
+    expect(app.routes.v1.packages).to.be.ok;
   });
 
   it('should allow creating a new package at /api/v1/packages', async () => {
