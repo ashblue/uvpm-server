@@ -11,8 +11,8 @@
     "serve": "npm run build && node \"./dist/index.js\"",
     "build": "npm run lint && tsc",
     "elastic-search-reset": "curl -X DELETE 'http://localhost:9200/_all'",
-    "test": "TEST=true mocha --opts test/mocha.opts --watch src/**/*.spec.ts",
-    "test:single": "TEST=true mocha src/**/*.spec.ts",
+    "test": "TEST=true mocha --watch \"src/**/*.spec.ts\"",
+    "test:single": "TEST=true mocha \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --watch",
     "lint": "tslint -c tslint.json \"src/**/*.ts\""
   },
