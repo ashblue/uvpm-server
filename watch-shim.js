@@ -8,8 +8,8 @@ if (!fs.existsSync('./dist')) {
 }
 
 // Delete the old bundle code so the file system picks up on a change before writing
-if (fs.existsSync('./dist/bundle.js')) {
-  fs.unlinkSync('./dist/bundle.js');
+if (fs.existsSync('./dist/index.js')) {
+  fs.unlinkSync('./dist/index.js');
 }
 
-fs.writeFileSync('./dist/bundle.js', '');
+fs.writeFileSync('./dist/index.js', '');

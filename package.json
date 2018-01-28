@@ -6,13 +6,13 @@
   "scripts": {
     "start": "npm run watch",
     "watch": "node watch-shim.js && npm-run-all --parallel watch:server watch:build",
-    "watch:build": "webpack --progress --colors --watch",
-    "watch:server": "nodemon \"./dist/bundle.js\" --watch \"./dist/*\"",
-    "serve": "build && nodemon \"./dist/bundle.js\"",
-    "build": "webpack",
+    "watch:build": "tsc -w",
+    "watch:server": "nodemon \"./dist/index.js\"",
+    "serve": "npm run build && node \"./dist/index.js\"",
+    "build": "npm run lint && tsc",
     "elastic-search-reset": "curl -X DELETE 'http://localhost:9200/_all'",
-    "test": "TEST=true mocha-webpack \"src/**/*.spec.ts\" --watch",
-    "test:single": "TEST=true mocha-webpack \"src/**/*.spec.ts\"",
+    "test": "TEST=true mocha --watch",
+    "test:single": "TEST=true && mocha",
     "lint": "tslint -c tslint.json \"src/**/*.ts\""
   },
   "repository": {
@@ -27,17 +27,15 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^4.1.0",
-    "mocha-webpack": "^1.0.1",
     "nodemon": "^1.14.7",
     "npm-run-all": "^4.1.2",
     "supertest": "^3.0.0",
     "ts-loader": "^3.2.0",
+    "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
     "tslint-eslint-rules": "^4.1.1",
     "tslint-loader": "^3.5.3",
-    "typescript": "^2.6.2",
-    "webpack": "^3.10.0",
-    "webpack-node-externals": "^1.6.0"
+    "typescript": "^2.6.2"
   },
   "dependencies": {
     "@types/async": "^2.0.46",
