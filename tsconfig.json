@@ -10,12 +10,11 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "strict": true,
-    "lib": ["es6"],
 
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": false,
+    "noFallthroughCasesInSwitch": false
   },
   "include": [
     "src/**/*"
