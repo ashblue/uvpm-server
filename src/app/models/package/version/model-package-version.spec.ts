@@ -20,7 +20,7 @@ describe('ModelPackageVersionSchema', () => {
   beforeEach((done) => {
     app = new App();
     db = app.db;
-    app.db.connection.once('open', () => {
+    app.db.connection.once('connected', () => {
       db.connection.db.dropDatabase().then(() => {
         done();
       });

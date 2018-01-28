@@ -16,7 +16,7 @@ describe('RoutePackages', () => {
 
   beforeEach((done) => {
     app = new App();
-    app.db.connection.once('open', () => {
+    app.db.connection.once('connected', () => {
       app.db.connection.db.dropDatabase().then(() => {
         done();
       });
