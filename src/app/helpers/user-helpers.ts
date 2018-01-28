@@ -25,7 +25,9 @@ export class UserHelpers {
       .expect(200)
       .expect('Content-Type', /json/)
       .then((result) => {
-        return result.body;
+        const userResult: IUserLogin = result.body;
+        userResult.authToken = `Bearer ${userResult.token}`;
+        return userResult;
       });
   }
 }

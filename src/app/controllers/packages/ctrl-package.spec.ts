@@ -57,7 +57,7 @@ describe('CtrlPackage', () => {
 
       app.express.post(routePackages, (req, res, next) => {
         app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
-          ctrl.httpPost(req, res);
+          ctrl.httpCreate(req, res);
         });
       });
 
@@ -116,7 +116,7 @@ describe('CtrlPackage', () => {
       });
     });
 
-    describe('httpPost', () => {
+    describe('httpCreate', () => {
       it('should receive a package model on success', (done) => {
         request(app.express)
           .post(routePackages)

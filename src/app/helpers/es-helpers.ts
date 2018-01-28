@@ -8,7 +8,7 @@ export class EsHelpers {
    * to properly wait for async triggers that it's okay to proceed. Currently using
    * timeouts which is terrible.
    */
-  public resetElasticSearch (done: () => {}) {
+  public resetElasticSearch (done: () => any) {
     curl.del(`${appConfig.ELASTIC_SEARCH_URL}/_all`, (err) => {
       if (err) {
         console.error(err);

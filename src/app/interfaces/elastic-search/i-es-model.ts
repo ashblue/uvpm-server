@@ -6,7 +6,10 @@ import { IEsSearch } from './i-es-search';
  */
 export interface IEsModel<T extends mongoose.Document, S>
   extends mongoose.Model<T>, IEsSearch<S> {
-  esClient: {
-    close: () => void,
-  };
+
+  esClient: any;
+
+  synchronize (opt: any): any;
+
+  esTruncate (callback: (err) => void);
 }

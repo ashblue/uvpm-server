@@ -20,9 +20,14 @@ export class CtrlPackage {
     this.versions = new CtrlPackageVersion(this.db);
   }
 
-  public httpPost = (req: IExpressRequest, res: express.Response) => {
-    const pack: IPackageData = req.body;
+  public httpCreate = (req: IExpressRequest, res: express.Response) => {
     const user = req.user as IModelUser;
+    const packRaw: IPackageData = req.body;
+    const pack: IPackageData = {
+      name: packRaw.name,
+      versions: packRaw.versions,
+      author: user.id,
+    };
 
     if (!pack.name) {
       res.status(400)
@@ -44,7 +49,6 @@ export class CtrlPackage {
       }
 
       if (!result) {
-        pack.author = user.id;
         this.create(pack)
           .then((result2) => {
             res.json(result2);
@@ -119,7 +123,7 @@ export class CtrlPackage {
 
         this.destroy(packName)
           .then(() => {
-            res.json({ messsage: `Successfully removed package ${packName}` });
+            res.json({ message: `Successfully removed package ${packName}` });
           })
           .catch((err) => {
             res.status(400)
@@ -275,7 +279,7 @@ export class CtrlPackage {
           return;
         }
 
-        if (!results) {
+        if (!results || !results.hits.hits || results.hits.hits.length === 0) {
           resolve([]);
         }
 

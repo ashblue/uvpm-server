@@ -21,7 +21,7 @@ describe('RouteUsers', () => {
   });
 
   it('should initialize', () => {
-    expect(app.routes.v1).to.be.ok;
+    expect(app.routes.v1.users).to.be.ok;
   });
 
   it('should not allow $ injections to skip registration details', (done) => {
@@ -193,6 +193,7 @@ interface IUserDetails {
   token?: string;
 }
 
+// @TODO Replace with user helper
 function createUser (app: Express.Application, newUser: IUserDetails, done: (user: IUserDetails) => void) {
   request(app)
     .post(`/api/v1/users`)
