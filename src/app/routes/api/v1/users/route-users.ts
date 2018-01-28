@@ -43,7 +43,7 @@ export class RouteUsers {
     });
 
     this.router.post('/login', this.sanitize, ctrlUser.login);
-    this.router.post('/', this.sanitize, ctrlUser.register);
+    this.router.post('/', this.sanitize, ctrlUser.httpRegister);
     this.router.put('/:userId', this.sanitize, (req, res, next) => {
       ctrlUser.authenticate(req, res, next, () => {
         ctrlUser.update(req, res);

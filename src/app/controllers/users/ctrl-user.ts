@@ -6,6 +6,8 @@ import passport = require('passport');
 import passportJWT = require('passport-jwt');
 import { Database } from '../databases/database';
 import { IExpressRequest } from '../../interfaces/i-express-request';
+import { IModelUser } from '../../models/user/i-model-user';
+import { IUserData } from '../../models/user/i-user-data';
 
 export class CtrlUser {
   constructor (private db: Database) {
@@ -29,24 +31,39 @@ export class CtrlUser {
     passport.use(strategy);
   }
 
-  public register = (req: express.Request, res: express.Response) => {
-    const user = new this.db.models.User({
+  public httpRegister = (req: express.Request, res: express.Response) => {
+    this.register({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
-    });
-    user.save((err, user2) => {
-      if (err) {
-        res.status(500).json(err);
-        return;
-      }
+    })
+      .then((user) => {
+        res.json(user);
+      })
+      .catch((err) => {
+        res.status(400)
+          .json({ message: err });
+      });
+  }
 
-      if (user2 == null) {
-        res.status(500).json({ message: 'Could not generate user' });
-        return;
-      }
+  // @TODO Basic happy path test
+  public register (user: IUserData): Promise<IModelUser> {
+    return new Promise<IModelUser>((resolve, reject) => {
+      const userModel = new this.db.models.User(user);
 
-      res.json(user2);
+      userModel.save((err, userResult) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (userResult == null) {
+          reject('Could not generate user');
+          return;
+        }
+
+        resolve(userResult);
+      });
     });
   }
 
