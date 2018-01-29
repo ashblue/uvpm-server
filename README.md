@@ -21,6 +21,15 @@ Docker command.
   * Run `docker-compose -f docker-compose.dev.yml up -d` if you don't want terminal logging
 * When done run `docker-compose -f docker-compose.dev.yml down` to properly shut down the database
 
+# How to create a user
+
+```bash
+# Optional if you haven't built out the project yet
+npm run build
+
+npm run create-user
+```
+
 # Testing
 
 Run all tests and automatically re-run all tests when a file changes.
