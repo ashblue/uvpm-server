@@ -9,6 +9,7 @@
     "watch:build": "tsc -w",
     "watch:server": "nodemon \"./dist/index.js\"",
     "serve": "npm run build && node \"./dist/index.js\"",
+    "serve:production": "NODE_ENV=production npm run build && node \"./dist/index.js\"",
     "build": "npm run lint && tsc",
     "elastic-search-reset": "curl -X DELETE 'http://localhost:9200/_all'",
     "test": "TEST=true mocha --watch \"src/**/*.spec.ts\"",
