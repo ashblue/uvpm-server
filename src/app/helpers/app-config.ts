@@ -29,7 +29,7 @@ class AppConfig {
     if (this.isEnvTest()) {
       return appConfig.DB_TEST_URL;
     } else {
-      return appConfig.DB_DEFAULT_URL;
+      return process.env.DB_URL || appConfig.DB_DEFAULT_URL;
     }
   }
 
