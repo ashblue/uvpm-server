@@ -9,6 +9,7 @@ import bodyParser = require('body-parser');
 
 import * as chai from 'chai';
 import { IModelUser } from '../../models/user/i-model-user';
+import { IUserData } from '../../models/user/i-user-data';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
@@ -36,7 +37,7 @@ describe('CtrlUser', () => {
     let ctrl: CtrlUser;
     let app: express.Application;
 
-    const userData = {
+    const userData: IUserData = {
       name: 'Lorem Ipsum',
       email: 'asdf@asdf.com',
       password: 'asdfasd1',
@@ -49,7 +50,7 @@ describe('CtrlUser', () => {
       app.use(passport.initialize());
 
       app.post('/users', (req, res) => {
-        ctrl.register(req, res);
+        ctrl.httpRegister(req, res);
       });
 
       app.put('/users/:userId', (req, res, next) => {
@@ -63,7 +64,7 @@ describe('CtrlUser', () => {
       });
     });
 
-    describe('register', () => {
+    describe('httpRegister', () => {
       it('should register a user', (done) => {
         request(app)
           .post('/users')
@@ -93,13 +94,38 @@ describe('CtrlUser', () => {
           .post('/users')
           .send({})
           .expect('Content-Type', /json/)
-          .expect(500)
+          .expect(400)
           .end((err, res) => {
             expect(err).to.be.null;
-            expect(res.body.errors).to.be.ok;
+            expect(res.body.message.errors).to.be.ok;
 
             done();
           });
+      });
+    });
+
+    describe('register', () => {
+      it('should allow registering a user', async () => {
+        const user = await ctrl.register(userData);
+
+        expect(user).to.be.ok;
+        expect(user.name).to.eq(userData.name);
+        expect(user.email).to.eq(userData.email);
+        expect(user.password).to.eq(userData.password);
+      });
+
+      it('should return an error if the registration data is incorrect', (done) => {
+        let err = null;
+
+        ctrl.register({
+          name: 'asdf',
+          email: 'asdf',
+          password: 'asdf',
+        }).catch((message) => {
+          err = message;
+          expect(err).to.be.ok;
+          done();
+        });
       });
     });
 

@@ -23,9 +23,7 @@ export class App {
       this.express.use(this.logRequest);
     }
 
-    const dbUrl = appConfig.isEnvTest() ? appConfig.DB_TEST_URL : appConfig.DB_DEFAULT_URL;
-    this.db = new Database(dbUrl);
-
+    this.db = new Database(appConfig.dbUrl);
     this.routes = new RouteApi(this);
   }
 

@@ -22,6 +22,18 @@ class AppConfig {
   public ELASTIC_SEARCH_URL = 'http://localhost:9200';
 
   /**
+   * Dynamically retrieve the current database URL based on the environment
+   * @returns {string}
+   */
+  public get dbUrl () {
+    if (this.isEnvTest()) {
+      return appConfig.DB_TEST_URL;
+    } else {
+      return appConfig.DB_DEFAULT_URL;
+    }
+  }
+
+  /**
    * Check if this is the testing environment
    */
   public isEnvTest () {
