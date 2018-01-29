@@ -1,21 +1,22 @@
 import * as express from 'express';
-import {Database} from '../databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {CtrlUser} from './ctrl-user';
+import { Database } from '../databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { CtrlUser } from './ctrl-user';
 import passport = require('passport');
 
 import request = require('supertest');
 import bodyParser = require('body-parser');
 
 import * as chai from 'chai';
-import {IModelUser} from '../../models/user/i-model-user';
+import { IModelUser } from '../../models/user/i-model-user';
+import { IUserData } from '../../models/user/i-user-data';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
   let db: Database;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       dbRef.connection.db.dropDatabase().then(() => {
         done();
       });
@@ -36,7 +37,7 @@ describe('CtrlUser', () => {
     let ctrl: CtrlUser;
     let app: express.Application;
 
-    const userData = {
+    const userData: IUserData = {
       name: 'Lorem Ipsum',
       email: 'asdf@asdf.com',
       password: 'asdfasd1',
@@ -49,7 +50,7 @@ describe('CtrlUser', () => {
       app.use(passport.initialize());
 
       app.post('/users', (req, res) => {
-        ctrl.register(req, res);
+        ctrl.httpRegister(req, res);
       });
 
       app.put('/users/:userId', (req, res, next) => {
@@ -63,7 +64,7 @@ describe('CtrlUser', () => {
       });
     });
 
-    describe('register', () => {
+    describe('httpRegister', () => {
       it('should register a user', (done) => {
         request(app)
           .post('/users')
@@ -93,13 +94,38 @@ describe('CtrlUser', () => {
           .post('/users')
           .send({})
           .expect('Content-Type', /json/)
-          .expect(500)
+          .expect(400)
           .end((err, res) => {
             expect(err).to.be.null;
-            expect(res.body.errors).to.be.ok;
+            expect(res.body.message.errors).to.be.ok;
 
             done();
           });
+      });
+    });
+
+    describe('register', () => {
+      it('should allow registering a user', async () => {
+        const user = await ctrl.register(userData);
+
+        expect(user).to.be.ok;
+        expect(user.name).to.eq(userData.name);
+        expect(user.email).to.eq(userData.email);
+        expect(user.password).to.eq(userData.password);
+      });
+
+      it('should return an error if the registration data is incorrect', (done) => {
+        let err = null;
+
+        ctrl.register({
+          name: 'asdf',
+          email: 'asdf',
+          password: 'asdf',
+        }).catch((message) => {
+          err = message;
+          expect(err).to.be.ok;
+          done();
+        });
       });
     });
 
@@ -190,7 +216,7 @@ describe('CtrlUser', () => {
       beforeEach((done) => {
         app.get('/users/auth', (req, res, next) => {
           ctrl.authenticate(req, res, next, () => {
-            res.send({message: 'success'});
+            res.send({ message: 'success' });
           });
         });
 
@@ -230,9 +256,9 @@ describe('CtrlUser', () => {
               .set('Authorization', 'Bearer ' + token)
               .expect('Content-Type', /json/)
               .expect(200)
-              .end((err, res) => {
-                expect(err).to.not.be.ok;
-                expect(res.body.message).to.contain('success');
+              .end((err2, res2) => {
+                expect(err2).to.not.be.ok;
+                expect(res2.body.message).to.contain('success');
                 done();
               });
           });
@@ -255,9 +281,12 @@ describe('CtrlUser', () => {
               .post('/users/login')
               .send(userData)
               .expect(200)
-              .end((err, res) => {
-                token = `Bearer ${res.body.token}`;
-                user = res.body.user;
+              .end((err2, res2) => {
+                expect(err2).to.not.be.ok;
+                expect(res2.body).to.haveOwnProperty('user');
+
+                token = `Bearer ${res2.body.token}`;
+                user = res2.body.user;
                 done();
               });
           });
@@ -311,17 +340,17 @@ describe('CtrlUser', () => {
                 password: 'asdfasd1',
               })
               .expect(200)
-              .end((err, res) => {
-                const token2 = `Bearer ${res.body.token}`;
+              .end((err2, res2) => {
+                const token2 = `Bearer ${res2.body.token}`;
 
                 request(app)
                   .put(`/users/${user.id}`)
                   .set('Authorization', token2)
-                  .send({name: 'fdsa'})
+                  .send({ name: 'fdsa' })
                   .expect(401)
-                  .end((err, res) => {
-                    expect(err).to.not.be.ok;
-                    expect(res.body.message).to.contain('Access denied');
+                  .end((err3, res3) => {
+                    expect(err3).to.not.be.ok;
+                    expect(res3.body.message).to.contain('Access denied');
                     done();
                   });
               });

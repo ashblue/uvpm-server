@@ -1,6 +1,6 @@
 import * as express from 'express';
-import {CtrlUser} from '../../../../controllers/users/ctrl-user';
-import {check} from 'express-validator/check';
+import { CtrlUser } from '../../../../controllers/users/ctrl-user';
+import { check } from 'express-validator/check';
 
 export class RouteUsers {
   public router = express.Router();
@@ -20,7 +20,7 @@ export class RouteUsers {
       .escape(),
   ];
 
-  constructor (ctrlUser: CtrlUser) {
+  constructor (public ctrlUser: CtrlUser) {
     // Cast body to proper values to prevent NoSQL injections
     this.router.use((req, res, next) => {
       if (req.body.name) {
@@ -43,7 +43,7 @@ export class RouteUsers {
     });
 
     this.router.post('/login', this.sanitize, ctrlUser.login);
-    this.router.post('/', this.sanitize, ctrlUser.register);
+    this.router.post('/', this.sanitize, ctrlUser.httpRegister);
     this.router.put('/:userId', this.sanitize, (req, res, next) => {
       ctrlUser.authenticate(req, res, next, () => {
         ctrlUser.update(req, res);

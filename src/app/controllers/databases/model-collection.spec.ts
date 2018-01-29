@@ -1,6 +1,6 @@
-import {Database} from '../databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {ModelCollection} from './model-collection';
+import { Database } from '../databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { ModelCollection } from './model-collection';
 
 import * as chai from 'chai';
 const expect = chai.expect;
@@ -9,7 +9,7 @@ describe('ModelCollection', () => {
   let db: Database;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       dbRef.connection.db.dropDatabase().then(() => {
         done();
       });
@@ -27,5 +27,15 @@ describe('ModelCollection', () => {
   it('should populate the user model', () => {
     const col = new ModelCollection(db);
     expect(col.User).to.be.ok;
+  });
+
+  it('should populate the package model', () => {
+    const col = new ModelCollection(db);
+    expect(col.PackageVersion).to.be.ok;
+  });
+
+  it('should populate the package collection model', () => {
+    const col = new ModelCollection(db);
+    expect(col.Package).to.be.ok;
   });
 });

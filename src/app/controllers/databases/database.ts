@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import {ModelCollection} from './model-collection';
+import { ModelCollection } from './model-collection';
 
 export class Database {
   public readonly connection: mongoose.Connection;

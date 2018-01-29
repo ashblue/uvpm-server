@@ -3,27 +3,8 @@ import { ModelBase } from './../base/model-base';
 import mongoose = require('mongoose');
 
 export class ModelUserSchema extends ModelBase {
-  get schemaOptions (): mongoose.SchemaOptions {
-    return {
-      toJSON: {
-        transform: (doc, ret) => {
-          // Hide all sensitive data from the API end point
-          ret.id = ret._id;
-          delete ret._id;
-          delete ret.password;
-
-          return ret;
-        },
-      },
-    };
-  }
-
   protected get schemaDefinition (): mongoose.SchemaDefinition {
     return {
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
       name: {
         type: String,
         required: [true, 'Name is required'],
@@ -72,16 +53,9 @@ export class ModelUserSchema extends ModelBase {
     };
   }
 
-  constructor () {
-    super();
+  protected transform (doc, ret) {
+    delete ret.password;
 
-    this.schema.pre('validate', function (this: mongoose.Document, next) {
-      if (this.isModified('createdAt')) {
-        next(new Error('createdAt cannot be modified'));
-        return;
-      }
-
-      next();
-    });
+    return super.transform(doc, ret);
   }
 }

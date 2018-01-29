@@ -1,4 +1,4 @@
-import {App} from '../../../app';
+import { App } from '../../../app';
 
 import * as chai from 'chai';
 const expect = chai.expect;
@@ -8,7 +8,7 @@ describe('RouteV1', () => {
 
   beforeEach((done) => {
     app = new App();
-    app.db.connection.once('open', done);
+    app.db.connection.once('connected', done);
   });
 
   afterEach((done) => {

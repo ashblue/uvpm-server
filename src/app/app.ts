@@ -3,7 +3,7 @@ import * as http from 'http';
 import bodyParser = require('body-parser');
 import { Database } from './controllers/databases/database';
 import { appConfig } from './helpers/app-config';
-import {RouteApi} from './routes/api/api';
+import { RouteApi } from './routes/api/api';
 import passport = require('passport');
 
 export class App {
@@ -15,24 +15,28 @@ export class App {
 
   constructor (logs: boolean = false) {
     this.express = express();
-    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.json({ limit: '10mb' }));
     this.express.use(passport.initialize());
+    this.express.use(express.static('public'));
 
     if (logs) {
       this.express.use(this.logRequest);
     }
 
-    // @TODO Should eat an overridable environmental variable if set (include test)
-    this.db = new Database(appConfig.DB_DEFAULT_URL);
+    this.db = new Database(appConfig.dbUrl);
     this.routes = new RouteApi(this);
   }
 
-  public createServer (port: number) {
+  public createServer (port: number, done?: (err) => void) {
     this.port = port;
 
     this.server = this.express.listen(port, (err) => {
       if (err) {
-        return console.error(err);
+        console.error(err);
+      }
+
+      if (done) {
+        done(err);
       }
 
       return console.log(`Server is listening on ${port}`);

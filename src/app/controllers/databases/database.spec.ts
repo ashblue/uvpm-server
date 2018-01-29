@@ -9,7 +9,7 @@ describe('Database', () => {
   let db: Database;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, () => done());
+    db = new Database(appConfig.DB_TEST_URL, () => done());
   });
 
   afterEach((done) => {
@@ -21,7 +21,7 @@ describe('Database', () => {
   });
 
   it('should set MongoDB on to the passed url at creation', () => {
-    db.url.should.equal(appConfig.DB_DEFAULT_URL);
+    db.url.should.equal(appConfig.DB_TEST_URL);
   });
 
   it('should run MongoDB on creation', () => {

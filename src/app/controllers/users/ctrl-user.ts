@@ -1,11 +1,13 @@
 import * as express from 'express';
-import {userConfig} from './user-config';
+import { userConfig } from './user-config';
 
 import jwt = require('jwt-simple');
 import passport = require('passport');
 import passportJWT = require('passport-jwt');
-import {Database} from '../databases/database';
-import {IExpressRequest} from '../../helpers/interfaces/i-express-request';
+import { Database } from '../databases/database';
+import { IExpressRequest } from '../../interfaces/i-express-request';
+import { IModelUser } from '../../models/user/i-model-user';
+import { IUserData } from '../../models/user/i-user-data';
 
 export class CtrlUser {
   constructor (private db: Database) {
@@ -29,24 +31,39 @@ export class CtrlUser {
     passport.use(strategy);
   }
 
-  public register = (req: express.Request, res: express.Response) => {
-    const user = new this.db.models.User({
+  public httpRegister = (req: express.Request, res: express.Response) => {
+    this.register({
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
-    });
-    user.save((err, user) => {
-      if (err) {
-        res.status(500).json(err);
-        return;
-      }
+    })
+      .then((user) => {
+        res.json(user);
+      })
+      .catch((err) => {
+        res.status(400)
+          .json({ message: err });
+      });
+  }
 
-      if (user == null) {
-        res.status(500).json({message: 'Could not generate user'});
-        return;
-      }
+  // @TODO Basic happy path test
+  public register (user: IUserData): Promise<IModelUser> {
+    return new Promise<IModelUser>((resolve, reject) => {
+      const userModel = new this.db.models.User(user);
 
-      res.json(user);
+      userModel.save((err, userResult) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (userResult == null) {
+          reject('Could not generate user');
+          return;
+        }
+
+        resolve(userResult);
+      });
     });
   }
 
@@ -54,8 +71,8 @@ export class CtrlUser {
     const email = req.body.email;
     const password = req.body.password;
 
-    const user = this.db.models.User;
-    user.findOne({email, password}, (err, user) => {
+    const userModel = this.db.models.User;
+    userModel.findOne({ email, password }, (err, user) => {
       if (err) {
         res.status(401).json(err);
         return;
@@ -68,7 +85,7 @@ export class CtrlUser {
         return;
       }
 
-      const token = jwt.encode({id: user.id}, userConfig.jwtSecret);
+      const token = jwt.encode({ id: user.id }, userConfig.jwtSecret);
       res.json({
         token,
         user,
@@ -84,7 +101,7 @@ export class CtrlUser {
       // Generate a JSON response reflecting authentication status
       if (!user) {
         return res.status(401)
-          .send({
+          .json({
             message: 'Authentication failed',
           });
       }
@@ -134,7 +151,7 @@ export class CtrlUser {
     }
 
     this.db.models.User.findByIdAndUpdate(queryId,
-      {$set: req.body},
+      { $set: req.body },
       {
         runValidators: true,
         new: true,

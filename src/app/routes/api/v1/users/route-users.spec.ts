@@ -1,4 +1,4 @@
-import {App} from '../../../../app';
+import { App } from '../../../../app';
 import request = require('supertest');
 
 import * as chai from 'chai';
@@ -9,7 +9,7 @@ describe('RouteUsers', () => {
 
   beforeEach((done) => {
     app = new App();
-    app.db.connection.once('open', () => {
+    app.db.connection.once('connected', () => {
       app.db.connection.db.dropDatabase().then(() => {
         done();
       });
@@ -21,7 +21,7 @@ describe('RouteUsers', () => {
   });
 
   it('should initialize', () => {
-    expect(app.routes.v1).to.be.ok;
+    expect(app.routes.v1.users).to.be.ok;
   });
 
   it('should not allow $ injections to skip registration details', (done) => {
@@ -82,9 +82,9 @@ describe('RouteUsers', () => {
             password: 'asdfasdf1',
           })
           .expect(200)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
-            expect(res.body.token).to.be.ok;
+          .end((err2, res2) => {
+            expect(err2).to.not.be.ok;
+            expect(res2.body.token).to.be.ok;
             done();
           });
       });
@@ -133,10 +133,10 @@ describe('RouteUsers', () => {
             password: 'asdfasdf1',
           })
           .expect(200)
-          .end((err, res) => {
-            expect(err).to.not.be.ok;
+          .end((err2, res2) => {
+            expect(err2).to.not.be.ok;
 
-            const token = res.body.token;
+            const token = res2.body.token;
             expect(token).to.be.ok;
 
             request(app.express)
@@ -146,9 +146,9 @@ describe('RouteUsers', () => {
                 name: newName,
               })
               .expect(200)
-              .end((err, res) => {
-                expect(err).to.not.be.ok;
-                expect(res.body.name).to.equal(newName);
+              .end((err3, res3) => {
+                expect(err3).to.not.be.ok;
+                expect(res3.body.name).to.equal(newName);
                 done();
               });
           });
@@ -193,6 +193,7 @@ interface IUserDetails {
   token?: string;
 }
 
+// @TODO Replace with user helper
 function createUser (app: Express.Application, newUser: IUserDetails, done: (user: IUserDetails) => void) {
   request(app)
     .post(`/api/v1/users`)
@@ -208,14 +209,14 @@ function createUser (app: Express.Application, newUser: IUserDetails, done: (use
           password: newUser.password,
         })
         .expect(200)
-        .end((err, res) => {
-          expect(err).to.not.be.ok;
+        .end((err2, res2) => {
+          expect(err2).to.not.be.ok;
 
           done({
-            name: res.body.user.name,
-            email: res.body.user.email,
-            password: res.body.user.password,
-            token: res.body.token,
+            name: res2.body.user.name,
+            email: res2.body.user.email,
+            password: res2.body.user.password,
+            token: res2.body.token,
           });
         });
     });

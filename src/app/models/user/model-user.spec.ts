@@ -1,8 +1,8 @@
 import * as mongoose from 'mongoose';
-import {Database} from '../../controllers/databases/database';
-import {appConfig} from '../../helpers/app-config';
-import {ModelUserSchema} from './model-user';
-import {IModelUser} from './i-model-user';
+import { Database } from '../../controllers/databases/database';
+import { appConfig } from '../../helpers/app-config';
+import { ModelUserSchema } from './model-user';
+import { IModelUser } from './i-model-user';
 
 import * as chai from 'chai';
 chai.should();
@@ -15,7 +15,7 @@ describe('ModelBase', () => {
   let ModelUser: mongoose.Model<IModelUser>;
 
   beforeEach((done) => {
-    db = new Database(appConfig.DB_DEFAULT_URL, (dbRef) => {
+    db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
       dbRef.connection.db.dropDatabase().then(() => {
         ModelUser = dbRef.connection.model('user', new ModelUserSchema().schema);
         done();
@@ -37,49 +37,15 @@ describe('ModelBase', () => {
     user.save((err, record) => {
       expect(err).to.be.null;
 
-      ModelUser.findById(record.id, (err, record) => {
-        expect(err).to.be.null;
-        expect(record).to.be.ok;
+      ModelUser.findById(record.id, (errFindById, result) => {
+        expect(errFindById).to.be.null;
+        expect(result).to.be.ok;
         done();
       });
     });
   });
 
   describe('definition property', () => {
-    describe('createdAt', () => {
-      it('should not allow the creation date to be overwritten', (done) => {
-        const m = new ModelUser({
-          name: 'asdf asdf',
-          email: 'asdf@asdf.com',
-          password: validPassword,
-        });
-
-        m.save((err, entry) => {
-          if (err) {
-            console.log(err);
-          }
-
-          expect(err).to.be.null;
-
-          entry.createdAt = new Date(0);
-          entry.save((err, entry) => {
-            err.toString().should.contain('createdAt cannot be modified');
-            done();
-          });
-        });
-      });
-
-      it('should inject a creation date upon initialization', () => {
-        const m = new ModelUser({
-          name: 'asdf asdf',
-          email: 'asdf@asdf.com',
-          password: validPassword,
-        });
-
-        m.createdAt.should.not.be.undefined;
-      });
-    });
-
     describe('name', () => {
       it('should not validate without a name', (done) => {
         const m = new ModelUser({
@@ -102,10 +68,10 @@ describe('ModelBase', () => {
 
         m.save((err, result: IModelUser) => {
           const name = result.name;
-          ModelUser.findByIdAndUpdate(m.id, {$set: {name: 'fdsa'}}, {new: true}, (err, result) => {
-            expect(result).to.be.ok;
-            if (result) {
-              expect(result.name).to.not.equal(name);
+          ModelUser.findByIdAndUpdate(m.id, { $set: { name: 'fdsa' } }, { new: true }, (errUpdate, updatedResult) => {
+            expect(updatedResult).to.be.ok;
+            if (updatedResult) {
+              expect(updatedResult.name).to.not.equal(name);
             }
 
             done();
@@ -171,9 +137,9 @@ describe('ModelBase', () => {
         user1.save((err) => {
           expect(err).to.be.null;
 
-          user2.save((err) => {
-            expect(err).to.not.be.undefined;
-            expect(err.errmsg).to.contain('duplicate key error');
+          user2.save((errUpdate) => {
+            expect(errUpdate).to.not.be.undefined;
+            expect(errUpdate.errmsg).to.contain('duplicate key error');
 
             done();
           });
@@ -246,13 +212,13 @@ describe('ModelBase', () => {
           password: validPassword,
         });
 
-        user.save((err, user) => {
+        user.save((err, userUpdated) => {
           expect(err).to.not.be.ok;
-          expect(user).to.be.ok;
+          expect(userUpdated).to.be.ok;
 
-          user._id = 'asdf';
-          user.save((err, user) => {
-            expect(err).to.be.ok;
+          userUpdated._id = 'asdf';
+          userUpdated.save((errUpdate) => {
+            expect(errUpdate).to.be.ok;
             done();
           });
         });
@@ -269,10 +235,6 @@ describe('ModelBase', () => {
         email: 'asdf@asdf.com',
         password: validPassword,
       });
-    });
-
-    it('should have a creation date', () => {
-      modelStub.toJSON().should.haveOwnProperty('createdAt');
     });
 
     it('should have a name', () => {

@@ -58,3 +58,5 @@ typings/
 .env
 
 dist
+public/files
+public/tmp-files
