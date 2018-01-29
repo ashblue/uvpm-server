@@ -21,6 +21,12 @@ Docker command.
   * Run `docker-compose -f docker-compose.dev.yml up -d` if you don't want terminal logging
 * When done run `docker-compose -f docker-compose.dev.yml down` to properly shut down the database
 
+## Production Server
+
+```bash
+JWT_SECRET=MY_SECRET npm run serve:production
+```
+
 # How to create a user
 
 ```bash
