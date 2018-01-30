@@ -54,7 +54,7 @@ describe('App', () => {
     fs.writeFileSync(filePath, fileText);
     app = new App();
     app.createServer(appConfig.DEFAULT_PORT, () => {
-      request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq, response, body) => {
+      request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq: any, response: any, body: any) => {
         expect(errReq).to.be.not.ok;
         expect(response.statusCode).to.eq(200);
         expect(body).to.contain(fileText);

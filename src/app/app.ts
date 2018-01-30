@@ -27,10 +27,10 @@ export class App {
     this.routes = new RouteApi(this);
   }
 
-  public createServer (port: number, done?: (err) => void) {
+  public createServer (port: number, done?: (err: Error) => void) {
     this.port = port;
 
-    this.server = this.express.listen(port, (err) => {
+    this.server = this.express.listen(port, (err: Error) => {
       if (err) {
         console.error(err);
       }
@@ -43,7 +43,7 @@ export class App {
     });
   }
 
-  private logRequest (req, res, next) {
+  private logRequest (req: any, res: Express.Response, next: any) {
     console.log('Request', req.originalUrl, req.body);
     next();
   }
