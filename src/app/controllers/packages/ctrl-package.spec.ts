@@ -10,24 +10,12 @@ import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import * as fs from 'fs';
 import { userHelpers } from '../../helpers/user-helpers';
-import { IEsRequestBodySearch } from '../../interfaces/elastic-search/i-es-request-body-search';
-import { IEsPackageHit } from '../../models/package/i-es-package-hit';
+import { esHelpers } from '../../helpers/es-helpers';
 
 const expect = chai.expect;
 
 describe('CtrlPackage', () => {
   let app: App;
-
-  /**
-   * Override the search results on the package's elastic search with a stub
-   * @param error
-   * @param results
-   */
-  function setSearchResults (error, results?: IEsRequestBodySearch<IEsPackageHit>) {
-    app.db.models.Package.search = (query, callback: (err, res) => void) => {
-      callback(error, results);
-    };
-  }
 
   beforeEach((done) => {
     app = new App();
@@ -736,7 +724,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        setSearchResults(undefined, {
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
           took: 0,
           hits: {
             total: 3,
@@ -788,7 +776,7 @@ describe('CtrlPackage', () => {
         let err: any;
         const errMsg = 'Failed to find package';
 
-        setSearchResults(errMsg);
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
 
         try {
           await ctrl.search('unity-helpers');
@@ -847,7 +835,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        setSearchResults(undefined, {
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
           took: 0,
           hits: {
             total: 3,
@@ -905,7 +893,7 @@ describe('CtrlPackage', () => {
 
       it('should return an empty array if the search fails', async () => {
         const errMsg = 'Failed to find package';
-        setSearchResults(errMsg);
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
 
         await request(app.express)
           .get(`${routeSearch}/unity-help`)
