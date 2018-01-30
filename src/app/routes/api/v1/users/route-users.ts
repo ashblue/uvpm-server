@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { CtrlUser } from '../../../../controllers/users/ctrl-user';
 import { check } from 'express-validator/check';
+import { NextFunction } from 'express';
 
 export class RouteUsers {
   public router = express.Router();
@@ -44,7 +45,7 @@ export class RouteUsers {
 
     this.router.post('/login', this.sanitize, ctrlUser.login);
     this.router.post('/', this.sanitize, ctrlUser.httpRegister);
-    this.router.put('/:userId', this.sanitize, (req, res, next) => {
+    this.router.put('/:userId', this.sanitize, (req: express.Request, res: express.Response, next: NextFunction) => {
       ctrlUser.authenticate(req, res, next, () => {
         ctrlUser.update(req, res);
       });

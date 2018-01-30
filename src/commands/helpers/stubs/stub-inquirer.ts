@@ -12,7 +12,7 @@ export class StubInquirer {
    * @param questions
    * @returns {Promise<inquirer.Answers>}
    */
-  public prompt (questions): Promise<Answers> {
+  public prompt (questions: any): Promise<Answers> {
     return new Promise<Answers>((resolve) => {
       resolve(this.answers);
     });

@@ -8,9 +8,9 @@ import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
-import { esHelpers } from '../../helpers/es-helpers';
 import * as fs from 'fs';
 import { userHelpers } from '../../helpers/user-helpers';
+import { esHelpers } from '../../helpers/es-helpers';
 
 const expect = chai.expect;
 
@@ -679,12 +679,8 @@ describe('CtrlPackage', () => {
     });
 
     describe('search', () => {
-      beforeEach((done) => {
-        esHelpers.resetElasticSearch(done);
-      });
-
       it('should return a list of packages', async () => {
-        await ctrl.create({
+        const pack1 = await ctrl.create({
           name: 'unity-animation-library',
           author: user.id,
           versions: [
@@ -717,7 +713,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await ctrl.create({
+        const pack3 = await ctrl.create({
           name: 'unity-toolkit',
           author: user.id,
           versions: [
@@ -728,10 +724,44 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        // Hack to make sure our results are written to Elastic Search
-        await new Promise((r) => { setTimeout(r, 800); });
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
+          took: 0,
+          hits: {
+            total: 3,
+            max_score: 5,
+            hits: [
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 3,
+                _source: {
+                  name: pack2.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack1.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack3.name,
+                },
+              },
+            ],
+          },
+        });
 
-        const results = await ctrl.search('unity-helpers');
+        const results = await ctrl.search(pack2.name);
 
         expect(results).to.be.ok;
         expect(results.length).eq(3);
@@ -744,6 +774,9 @@ describe('CtrlPackage', () => {
 
       it('should return an error if no packages are found', async () => {
         let err: any;
+        const errMsg = 'Failed to find package';
+
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
 
         try {
           await ctrl.search('unity-helpers');
@@ -752,16 +785,13 @@ describe('CtrlPackage', () => {
         }
 
         expect(err).to.be.ok;
+        expect(err).to.eq(errMsg);
       });
     });
 
     describe('httpSearch', () => {
-      beforeEach((done) => {
-        esHelpers.resetElasticSearch(done);
-      });
-
       it('should return search results', async () => {
-        await ctrl.create({
+        const pack1 = await ctrl.create({
           name: 'unity-animation-library',
           author: user.id,
           versions: [
@@ -794,7 +824,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await ctrl.create({
+        const pack3 = await ctrl.create({
           name: 'unity-toolkit',
           author: user.id,
           versions: [
@@ -805,10 +835,45 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await new Promise((r) => { setTimeout(r, 800); });
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
+          took: 0,
+          hits: {
+            total: 3,
+            max_score: 5,
+            hits: [
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 3,
+                _source: {
+                  name: pack2.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack1.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack3.name,
+                },
+              },
+            ],
+          },
+        });
 
         await request(app.express)
-          .get(`${routeSearch}/unity%20helpers`)
+          .get(`${routeSearch}/unity-helpers`)
           .expect('Content-Type', /json/)
           .expect(200)
           .then((result) => {
@@ -827,6 +892,9 @@ describe('CtrlPackage', () => {
       });
 
       it('should return an empty array if the search fails', async () => {
+        const errMsg = 'Failed to find package';
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
+
         await request(app.express)
           .get(`${routeSearch}/unity-help`)
           .expect('Content-Type', /json/)
