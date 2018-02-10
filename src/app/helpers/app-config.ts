@@ -47,12 +47,12 @@ class AppConfig {
     return process.env.NODE_ENV === 'production';
   }
 
-  public getFileFolder () {
+  public get fileFolder () {
     if (this.isEnvTest()) {
-      return this.FILE_FOLDER_TEST;
+      return `${this.FILE_FOLDER_TEST}`;
     }
 
-    return this.FILE_FOLDER;
+    return `${this.FILE_FOLDER}`;
   }
 
   public getRootUrl () {

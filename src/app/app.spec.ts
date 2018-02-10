@@ -49,19 +49,37 @@ describe('App', () => {
   it('should set the public folder to readable', (done) => {
     const fileText = 'Test';
     const file = 'test.txt';
-    const filePath = `${appConfig.PUBLIC_FOLDER}/${file}`;
+    const publicFolder = appConfig.PUBLIC_FOLDER;
+    const fileFolder = `${publicFolder}/${appConfig.fileFolder}`;
+    const filePath = `${fileFolder}/${file}`;
+
+    // Sanity check BEGIN
+    if (!fs.existsSync(fileFolder)) {
+      fs.mkdirSync(fileFolder);
+    }
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
     fs.writeFileSync(filePath, fileText);
+
+    expect(fs.existsSync(filePath)).to.be.ok;
+    // Sanity check END
+
     app = new App();
-    app.createServer(appConfig.DEFAULT_PORT, () => {
-      request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq: any, response: any, body: any) => {
+    app.createServer(appConfig.DEFAULT_PORT, (err) => {
+      expect(err).to.not.be.ok;
+
+      const reqPath = `${appConfig.ROOT_URL_TEST}/${appConfig.fileFolder}/${file}`;
+      request(reqPath, (errReq: any, response: any, body: any) => {
         expect(errReq).to.be.not.ok;
         expect(response.statusCode).to.eq(200);
         expect(body).to.contain(fileText);
 
-        fs.unlinkSync(filePath);
-        expect(fs.existsSync(filePath)).to.be.not.ok;
+        expect(fs.existsSync(filePath)).to.be.ok;
         app.server.close();
+        fs.unlinkSync(filePath);
         app.db.closeConnection(done);
       });
     });
