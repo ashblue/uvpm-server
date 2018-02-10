@@ -99,8 +99,16 @@ export class CommandCreateUser {
       const db = new Database(appConfig.dbUrl, () => {
         const ctrlUser = new CtrlUser(db);
         ctrlUser.register(user)
-          .then(resolve)
-          .catch(reject);
+          .then((data) => {
+            db.closeConnection(() => {
+              resolve(data);
+            });
+          })
+          .catch((err) => {
+            db.closeConnection(() => {
+              reject(err);
+            });
+          });
       });
     });
   }

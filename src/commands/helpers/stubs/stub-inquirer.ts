@@ -1,10 +1,7 @@
 import { Answers } from 'inquirer';
 
 export class StubInquirer {
-  // public promptSpy: SinonSpy;
-
   constructor (private answers?: Answers) {
-    // this.promptSpy = sinon.spy(this, 'prompt');
   }
 
   /**
