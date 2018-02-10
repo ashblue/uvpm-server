@@ -7,7 +7,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": ".",
-    "removeComments": true,
+    "removeComments": false,
     "preserveConstEnums": true,
     "strict": true,
 

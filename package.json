@@ -15,9 +15,24 @@
     "test": "TEST=true mocha --watch \"src/**/*.spec.ts\"",
     "test:single": "TEST=true mocha \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --watch",
+    "test:all": "npm run build && npm run coverage",
+    "coverage": "TEST=true nyc --reporter=text --reporter=html mocha \"src/**/*.spec.ts\"",
+    "coverage:file": "TEST=true nyc --reporter=text --reporter=html mocha",
+    "coverage:simple": "TEST=true nyc mocha \"src/**/*.spec.ts\"",
     "cli": "node \"dist/commands\"",
     "create-user": "npm run cli -- create-user",
     "lint": "tslint -c tslint.json \"src/**/*.ts\""
+  },
+  "nyc": {
+    "check-coverage": true,
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "**/*.spec.ts"
+    ]
   },
   "repository": {
     "type": "git",
@@ -33,6 +48,7 @@
     "mocha": "^4.1.0",
     "nodemon": "^1.14.7",
     "npm-run-all": "^4.1.2",
+    "nyc": "^11.4.1",
     "sinon": "^4.2.2",
     "supertest": "^3.0.0",
     "ts-loader": "^3.2.0",
