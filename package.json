@@ -19,6 +19,7 @@
     "coverage": "TEST=true nyc --reporter=text --reporter=html mocha \"src/**/*.spec.ts\"",
     "coverage:file": "TEST=true nyc --reporter=text --reporter=html mocha",
     "coverage:simple": "TEST=true nyc mocha \"src/**/*.spec.ts\"",
+    "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
     "cli": "node \"dist/commands\"",
     "create-user": "npm run cli -- create-user",
     "lint": "tslint -c tslint.json \"src/**/*.ts\"",

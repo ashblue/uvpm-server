@@ -1,0 +1,12 @@
+sudo: required
+services:
+- docker
+language: node_js
+install:
+- npm install
+node_js:
+- "node"
+script:
+- docker-compose -f docker-compose.dev.yml up -d
+- npm run build
+- npm run coverage:ci
