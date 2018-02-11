@@ -43,7 +43,7 @@ class AppConfig {
   /**
    * Check if this is the production environment
    */
-  public isEnvProcution () {
+  public isEnvProdution () {
     return process.env.NODE_ENV === 'production';
   }
 
@@ -56,7 +56,8 @@ class AppConfig {
   }
 
   public getRootUrl () {
-    if (this.isEnvProcution()) {
+    // istanbul ignore if
+    if (this.isEnvProdution()) {
       return this.ROOT_URL;
     }
 

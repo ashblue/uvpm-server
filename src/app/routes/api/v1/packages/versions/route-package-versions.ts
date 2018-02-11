@@ -21,6 +21,7 @@ export class RoutePackageVersions {
         req.body.archive = req.body.archive.toString();
       }
 
+      // istanbul ignore if
       if (req.body.description) {
         req.body.description = req.body.description.toString();
       }

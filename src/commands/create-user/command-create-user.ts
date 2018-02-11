@@ -29,6 +29,7 @@ export class CommandCreateUser {
     },
   ];
 
+  // istanbul ignore next: @TODO should be cleaned up and a test written to run this logic
   constructor (program: Command, private inquirer: Inquirer) {
     program
       .command('create-user')
@@ -58,6 +59,7 @@ export class CommandCreateUser {
           this.logErr(chalk.red('Failed to create user'));
           this.logErr('Error Log:');
 
+          // istanbul ignore else
           if (appConfig.isEnvTest()) {
             this.logErr(err);
           } else {
@@ -70,6 +72,7 @@ export class CommandCreateUser {
     });
   }
 
+  // istanbul ignore next
   private logErr (text: string) {
     if (appConfig.isEnvTest()) {
       return;
@@ -78,6 +81,7 @@ export class CommandCreateUser {
     console.error(text);
   }
 
+  // istanbul ignore next
   private log (text: string) {
     if (appConfig.isEnvTest()) {
       return;
@@ -86,6 +90,7 @@ export class CommandCreateUser {
     console.log(text);
   }
 
+  // istanbul ignore next
   private exit () {
     if (appConfig.isEnvTest()) {
       return;
