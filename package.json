@@ -1,5 +1,5 @@
 {
-  "name": "uv-package-manager",
+  "name": "uvpm-server",
   "version": "1.0.0",
   "description": "A package manager for Unity3D. The back-end server portion of the software.",
   "main": "index.js",
@@ -15,9 +15,32 @@
     "test": "TEST=true mocha --watch \"src/**/*.spec.ts\"",
     "test:single": "TEST=true mocha \"src/**/*.spec.ts\"",
     "test:file": "TEST=true mocha --watch",
+    "test:all": "npm run build && npm run coverage",
+    "coverage": "TEST=true nyc --reporter=text --reporter=html mocha \"src/**/*.spec.ts\"",
+    "coverage:file": "TEST=true nyc --reporter=text --reporter=html mocha",
+    "coverage:simple": "TEST=true nyc mocha \"src/**/*.spec.ts\"",
+    "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
     "cli": "node \"dist/commands\"",
     "create-user": "npm run cli -- create-user",
-    "lint": "tslint -c tslint.json \"src/**/*.ts\""
+    "lint": "tslint -c tslint.json \"src/**/*.ts\"",
+    "precommit": "npm run build",
+    "prepush": "npm run test:all"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "per-file": true,
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "**/*.spec.ts"
+    ]
   },
   "repository": {
     "type": "git",
@@ -30,9 +53,11 @@
   "homepage": "https://github.com/ashblue/uv-package-manager#readme",
   "devDependencies": {
     "chai": "^4.1.2",
+    "husky": "^0.14.3",
     "mocha": "^4.1.0",
     "nodemon": "^1.14.7",
     "npm-run-all": "^4.1.2",
+    "nyc": "^11.4.1",
     "sinon": "^4.2.2",
     "supertest": "^3.0.0",
     "ts-loader": "^3.2.0",

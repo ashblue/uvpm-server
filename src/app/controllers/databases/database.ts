@@ -25,8 +25,6 @@ export class Database {
 
     this.connection = mongoose.createConnection(this.url);
     this.connection.once('open', () => {
-      this.createLogs();
-
       if (done != null) {
         done(this);
       }
@@ -35,15 +33,5 @@ export class Database {
 
   public closeConnection (done: () => void) {
     this.connection.close(done);
-  }
-
-  private createLogs () {
-    mongoose.connection.on('open', () => {
-      console.log(`Successfully connected to MongoDB: ${this.url}`);
-    });
-
-    mongoose.connection.on('close', () => {
-      console.log(`Closed connection to MongoDB: ${this.url}`);
-    });
   }
 }

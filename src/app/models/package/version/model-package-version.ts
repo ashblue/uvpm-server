@@ -50,8 +50,10 @@ export class ModelPackageVersionSchema extends ModelBase {
     super();
 
     this.schema.pre('remove', function (this: IModelPackageVersion, next) {
+      // istanbul ignore else
       if (fs.existsSync(this.archive)) {
         fs.unlink(this.archive, (err) => {
+          // istanbul ignore if
           if (err) {
             console.error(err);
           }
@@ -66,6 +68,7 @@ export class ModelPackageVersionSchema extends ModelBase {
 
   protected transform (doc, ret) {
     // Only hijack local files
+    // istanbul ignore else
     if (!doc.archive.startsWith('http')) {
       ret.archive = `${appConfig.getRootUrl()}/${doc.archive}`
         .replace('public/', '');
@@ -85,6 +88,8 @@ export class ModelPackageVersionSchema extends ModelBase {
     }
 
     let fileDecode: Buffer;
+
+    // istanbul ignore next
     try {
       fileDecode = Buffer.from(fileString, 'base64');
     } catch (e) {
@@ -92,11 +97,13 @@ export class ModelPackageVersionSchema extends ModelBase {
       return fileString;
     }
 
+    // istanbul ignore if
     if (fileDecode.byteLength > fileHelper.maxFileSize()) {
       // File size too large, pass back to validator to detect proper failure message
       return fileString;
     }
 
+    // istanbul ignore if
     if (!fs.existsSync(appConfig.PUBLIC_FOLDER)) {
       fs.mkdirSync(appConfig.PUBLIC_FOLDER);
     }

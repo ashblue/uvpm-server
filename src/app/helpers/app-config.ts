@@ -43,20 +43,21 @@ class AppConfig {
   /**
    * Check if this is the production environment
    */
-  public isEnvProcution () {
+  public isEnvProdution () {
     return process.env.NODE_ENV === 'production';
   }
 
-  public getFileFolder () {
+  public get fileFolder () {
     if (this.isEnvTest()) {
-      return this.FILE_FOLDER_TEST;
+      return `${this.FILE_FOLDER_TEST}`;
     }
 
-    return this.FILE_FOLDER;
+    return `${this.FILE_FOLDER}`;
   }
 
   public getRootUrl () {
-    if (this.isEnvProcution()) {
+    // istanbul ignore if
+    if (this.isEnvProdution()) {
       return this.ROOT_URL;
     }
 

@@ -35,6 +35,7 @@ export class CtrlPackage {
       return;
     }
 
+    // istanbul ignore if
     if (!user) {
       res.status(401)
         .json({ message: 'Authentication is required' });
@@ -107,6 +108,7 @@ export class CtrlPackage {
     const user = req.user as IModelUser;
     const packName: string = req.params.idPackage;
 
+    // istanbul ignore if
     if (!user) {
       res.status(401)
         .json({ message: 'Authentication failed' });
@@ -186,6 +188,7 @@ export class CtrlPackage {
               path: 'author',
             },
           ], (err, result) => {
+            // istanbul ignore if
             if (err) {
               callback(err);
               return;
@@ -200,6 +203,7 @@ export class CtrlPackage {
           return;
         }
 
+        // istanbul ignore if: Should write a test at a later date
         if (savedPack) {
           this.db.models.Package.findByIdAndRemove(savedPack, (errVersion) => {
             if (errVersion) {
@@ -213,6 +217,7 @@ export class CtrlPackage {
           this.db.models.PackageVersion.remove({
             _id: { $in: versionIds },
           }, (err2) => {
+            // istanbul ignore if
             if (err2) {
               console.error(err2);
             }
@@ -249,6 +254,7 @@ export class CtrlPackage {
           },
         ])
         .exec((err, res: IModelPackage) => {
+          // istanbul ignore if
           if (err) {
             reject(err);
             return;
@@ -279,8 +285,10 @@ export class CtrlPackage {
           return;
         }
 
+        // istanbul ignore if
         if (!results || !results.hits.hits || results.hits.hits.length === 0) {
           resolve([]);
+          return;
         }
 
         const packageNameToScore = results.hits.hits.reduce((result, obj) => {
@@ -310,6 +318,7 @@ export class CtrlPackage {
             },
           ])
           .exec((err, res) => {
+            // istanbul ignore if
             if (err) {
               reject(err);
               return;
@@ -343,6 +352,7 @@ export class CtrlPackage {
   public destroy (name: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.db.models.Package.findOne({ name }, (err, res) => {
+        // istanbul ignore if
         if (err) {
           reject(err);
           return;
@@ -354,6 +364,7 @@ export class CtrlPackage {
         }
 
         res.remove((errRemove) => {
+          // istanbul ignore if
           if (errRemove) {
             reject(errRemove);
             return;

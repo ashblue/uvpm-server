@@ -4,6 +4,7 @@ import * as process from 'process';
 import * as chai from 'chai';
 import { appConfig } from './helpers/app-config';
 import * as fs from 'fs';
+import * as sinon from 'sinon';
 
 const request = require('request');
 const expect = chai.expect;
@@ -46,22 +47,47 @@ describe('App', () => {
     });
   });
 
+  it('should trigger logs', (done) => {
+    app = new App(true);
+    app.db.connection.once('connected', () => {
+      app.db.closeConnection(done);
+    });
+  });
+
   it('should set the public folder to readable', (done) => {
     const fileText = 'Test';
     const file = 'test.txt';
-    const filePath = `${appConfig.PUBLIC_FOLDER}/${file}`;
+    const publicFolder = appConfig.PUBLIC_FOLDER;
+    const fileFolder = `${publicFolder}/${appConfig.fileFolder}`;
+    const filePath = `${fileFolder}/${file}`;
+
+    // Sanity check BEGIN
+    if (!fs.existsSync(fileFolder)) {
+      fs.mkdirSync(fileFolder);
+    }
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
     fs.writeFileSync(filePath, fileText);
+
+    expect(fs.existsSync(filePath)).to.be.ok;
+    // Sanity check END
+
     app = new App();
-    app.createServer(appConfig.DEFAULT_PORT, () => {
-      request(`${appConfig.ROOT_URL_TEST}/${file}`, (errReq, response, body) => {
+    app.createServer(appConfig.DEFAULT_PORT, (err) => {
+      expect(err).to.not.be.ok;
+
+      const reqPath = `${appConfig.ROOT_URL_TEST}/${appConfig.fileFolder}/${file}`;
+      request(reqPath, (errReq: any, response: any, body: any) => {
         expect(errReq).to.be.not.ok;
         expect(response.statusCode).to.eq(200);
         expect(body).to.contain(fileText);
 
-        fs.unlinkSync(filePath);
-        expect(fs.existsSync(filePath)).to.be.not.ok;
+        expect(fs.existsSync(filePath)).to.be.ok;
         app.server.close();
+        fs.unlinkSync(filePath);
         app.db.closeConnection(done);
       });
     });
@@ -81,11 +107,26 @@ describe('App', () => {
       assert.notEqual(app.express, undefined);
     });
 
-    it('should set the port on creation', (done) => {
-      app.createServer(3000, () => {
-        assert.equal(app.port, 3000);
-        app.server.close();
-        done();
+    describe('createServer', () => {
+      it('should set the port on creation', (done) => {
+        app.createServer(3000, () => {
+          assert.equal(app.port, 3000);
+          app.server.close(done);
+        });
+      });
+
+      it('should return an error if listening fails', (done) => {
+        const stub = sinon.stub(app.express, 'listen');
+        stub.callsFake((port, callback) => {
+          callback('Failed to load');
+        });
+
+        app.createServer(3000, (err) => {
+          expect(err).to.eq('Failed to load');
+          stub.restore();
+          done();
+        });
+
       });
     });
   });

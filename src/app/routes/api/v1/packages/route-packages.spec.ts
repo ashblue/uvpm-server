@@ -131,8 +131,7 @@ describe('RoutePackages', () => {
     });
   });
 
-  // @NOTE Disabled because Elastic Search is randomly bombing out under heavy load
-  xit('should send back package search results at /api/v1/packages/search/PACKAGE_NAME', async () => {
+  it('should send back package search results at /api/v1/packages/search/PACKAGE_NAME', async () => {
     let pack: IModelPackage = {} as any;
     const packData: IPackageData = {
       name: 'my-package',
@@ -145,12 +144,23 @@ describe('RoutePackages', () => {
       ],
     };
 
-    await new Promise((resolve) => {
-      esHelpers.resetElasticSearch(resolve);
-    });
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 1000);
+    esHelpers.setSearchResults(app.db.models.Package, undefined, {
+      took: 0,
+      hits: {
+        total: 3,
+        max_score: 5,
+        hits: [
+          {
+            _index: '0',
+            _type: 'Package',
+            _id: 'asdf',
+            _score: 3,
+            _source: {
+              name: packData.name,
+            },
+          },
+        ],
+      },
     });
 
     await request(app.express)

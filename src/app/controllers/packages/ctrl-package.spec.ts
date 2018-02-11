@@ -8,9 +8,10 @@ import { fileHelper } from '../../helpers/file-helper';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
-import { esHelpers } from '../../helpers/es-helpers';
 import * as fs from 'fs';
 import { userHelpers } from '../../helpers/user-helpers';
+import { esHelpers } from '../../helpers/es-helpers';
+import * as sinon from 'sinon';
 
 const expect = chai.expect;
 
@@ -220,6 +221,83 @@ describe('CtrlPackage', () => {
             expect(res.body.message).to.contain('Authentication failed');
 
             done();
+          });
+      });
+
+      it('should return an error if package creation fails', async () => {
+        const errMessage = 'Failed to create package';
+        const stub = sinon.stub(ctrl, 'create');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        await request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
+      });
+
+      it('should return an error if package lookup fails', async () => {
+        const errMessage = 'Model does not exist';
+        const stub = sinon.stub(app.db.models.Package, 'findOne');
+        stub.callsFake((data, callback) => {
+          callback(errMessage);
+        });
+
+        await request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
+      });
+
+      it('should fail if no user is provided', async () => {
+        await request(app.express)
+          .post(routePackages)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body.message).to.eq('Authentication failed');
           });
       });
     });
@@ -511,6 +589,28 @@ describe('CtrlPackage', () => {
             done();
           });
       });
+
+      it('should return an error if get fails', async () => {
+        const errMessage = 'Get failed lookup';
+        const stub = sinon.stub(ctrl, 'get');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        const packId = 'fdsa';
+        await request(app.express)
+          .get(`${routePackages}/${packId}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((response) => {
+            expect(response).to.be.ok;
+            expect(response.body).to.be.ok;
+            expect(response.body).to.contain(errMessage);
+            stub.restore();
+          });
+      });
     });
 
     describe('destroy', () => {
@@ -632,6 +732,28 @@ describe('CtrlPackage', () => {
           });
       });
 
+      it('should catch a destroy error', async () => {
+        const errMessage = 'Destroy failed';
+        const stub = sinon.stub(ctrl, 'destroy');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        await request(app.express)
+          .del(`${routePackages}/${pack.name}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
+      });
+
       it('should return an error message if the package cannot be found', async () => {
         const fakePackName = 'NON_EXISTENT_ID';
 
@@ -679,12 +801,8 @@ describe('CtrlPackage', () => {
     });
 
     describe('search', () => {
-      beforeEach((done) => {
-        esHelpers.resetElasticSearch(done);
-      });
-
       it('should return a list of packages', async () => {
-        await ctrl.create({
+        const pack1 = await ctrl.create({
           name: 'unity-animation-library',
           author: user.id,
           versions: [
@@ -717,7 +835,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await ctrl.create({
+        const pack3 = await ctrl.create({
           name: 'unity-toolkit',
           author: user.id,
           versions: [
@@ -728,10 +846,44 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        // Hack to make sure our results are written to Elastic Search
-        await new Promise((r) => { setTimeout(r, 800); });
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
+          took: 0,
+          hits: {
+            total: 3,
+            max_score: 5,
+            hits: [
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 3,
+                _source: {
+                  name: pack2.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack1.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack3.name,
+                },
+              },
+            ],
+          },
+        });
 
-        const results = await ctrl.search('unity-helpers');
+        const results = await ctrl.search(pack2.name);
 
         expect(results).to.be.ok;
         expect(results.length).eq(3);
@@ -744,6 +896,9 @@ describe('CtrlPackage', () => {
 
       it('should return an error if no packages are found', async () => {
         let err: any;
+        const errMsg = 'Failed to find package';
+
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
 
         try {
           await ctrl.search('unity-helpers');
@@ -752,16 +907,13 @@ describe('CtrlPackage', () => {
         }
 
         expect(err).to.be.ok;
+        expect(err).to.eq(errMsg);
       });
     });
 
     describe('httpSearch', () => {
-      beforeEach((done) => {
-        esHelpers.resetElasticSearch(done);
-      });
-
       it('should return search results', async () => {
-        await ctrl.create({
+        const pack1 = await ctrl.create({
           name: 'unity-animation-library',
           author: user.id,
           versions: [
@@ -794,7 +946,7 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await ctrl.create({
+        const pack3 = await ctrl.create({
           name: 'unity-toolkit',
           author: user.id,
           versions: [
@@ -805,10 +957,45 @@ describe('CtrlPackage', () => {
           ],
         });
 
-        await new Promise((r) => { setTimeout(r, 800); });
+        esHelpers.setSearchResults(app.db.models.Package, undefined, {
+          took: 0,
+          hits: {
+            total: 3,
+            max_score: 5,
+            hits: [
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 3,
+                _source: {
+                  name: pack2.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack1.name,
+                },
+              },
+              {
+                _index: '0',
+                _type: 'Package',
+                _id: 'asdf',
+                _score: 1,
+                _source: {
+                  name: pack3.name,
+                },
+              },
+            ],
+          },
+        });
 
         await request(app.express)
-          .get(`${routeSearch}/unity%20helpers`)
+          .get(`${routeSearch}/unity-helpers`)
           .expect('Content-Type', /json/)
           .expect(200)
           .then((result) => {
@@ -826,7 +1013,31 @@ describe('CtrlPackage', () => {
           });
       });
 
+      it('should return an empty array if search is empty', async () => {
+        const stub = sinon.stub(ctrl, 'search');
+        stub.callsFake(() => {
+          return new Promise((resolve) => {
+            resolve(undefined);
+          });
+        });
+
+        await request(app.express)
+          .get(`${routeSearch}/unity-helpers`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.length).to.eq(0);
+          });
+
+        stub.restore();
+      });
+
       it('should return an empty array if the search fails', async () => {
+        const errMsg = 'Failed to find package';
+        esHelpers.setSearchResults(app.db.models.Package, errMsg);
+
         await request(app.express)
           .get(`${routeSearch}/unity-help`)
           .expect('Content-Type', /json/)

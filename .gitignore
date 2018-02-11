@@ -60,3 +60,4 @@ typings/
 dist
 public/files
 public/tmp-files
+coverage.lcov
