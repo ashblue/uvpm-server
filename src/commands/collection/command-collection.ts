@@ -10,6 +10,7 @@ export class CommandCollection {
     this.cmdCreateUser = new CommandCreateUser(program, inquirer);
   }
 
+  // istanbul ignore next: Should never run in test mode (crashes tests)
   public listen () {
     this.program.parse(process.argv);
   }

@@ -36,6 +36,7 @@ export class RouteUsers {
         req.body.password = req.body.password.toString();
       }
 
+      // istanbul ignore if
       if (req.body.passwordConfirm) {
         req.body.passwordConfirm = req.body.passwordConfirm.toString();
       }

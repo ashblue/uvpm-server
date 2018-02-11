@@ -5,6 +5,7 @@ import { Database } from './controllers/databases/database';
 import { appConfig } from './helpers/app-config';
 import { RouteApi } from './routes/api/api';
 import passport = require('passport');
+import * as fs from 'fs';
 
 export class App {
   public db: Database;
@@ -17,7 +18,8 @@ export class App {
     this.express = express();
     this.express.use(bodyParser.json({ limit: '10mb' }));
     this.express.use(passport.initialize());
-    this.express.use(express.static('public'));
+
+    this.setupFileFolder();
 
     if (logs) {
       this.express.use(this.logRequest);
@@ -35,6 +37,7 @@ export class App {
         console.error(err);
       }
 
+      // istanbul ignore else
       if (done) {
         done(err);
       }
@@ -43,6 +46,16 @@ export class App {
     });
   }
 
+  private setupFileFolder () {
+    const fileFolder = `${appConfig.PUBLIC_FOLDER}/${appConfig.fileFolder}`;
+    if (!fs.existsSync(fileFolder)) {
+      fs.mkdirSync(fileFolder);
+    }
+
+    this.express.use(express.static(appConfig.PUBLIC_FOLDER));
+  }
+
+  // istanbul ignore next
   private logRequest (req: any, res: Express.Response, next: any) {
     console.log('Request', req.originalUrl, req.body);
     next();

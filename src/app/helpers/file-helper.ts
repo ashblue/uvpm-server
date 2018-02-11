@@ -41,22 +41,4 @@ export const fileHelper = {
       });
     });
   },
-
-  createBase64FileText (text: string, done: (base64: string) => void) {
-    tmp.file((err, path, fd, cleanupCallback) => {
-      fs.writeFile(path, text, 'utf8', (errWrite) => {
-        if (errWrite) {
-          console.error(errWrite);
-          cleanupCallback();
-          done('');
-          return;
-        }
-
-        const bitmap = fs.readFileSync(path);
-        const base64 = new Buffer(bitmap).toString('base64');
-        cleanupCallback();
-        done(base64);
-      });
-    });
-  },
 };

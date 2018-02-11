@@ -11,6 +11,7 @@ import { IPackageSearchResult } from '../../models/package/i-package-search-resu
 import * as fs from 'fs';
 import { userHelpers } from '../../helpers/user-helpers';
 import { esHelpers } from '../../helpers/es-helpers';
+import * as sinon from 'sinon';
 
 const expect = chai.expect;
 
@@ -220,6 +221,83 @@ describe('CtrlPackage', () => {
             expect(res.body.message).to.contain('Authentication failed');
 
             done();
+          });
+      });
+
+      it('should return an error if package creation fails', async () => {
+        const errMessage = 'Failed to create package';
+        const stub = sinon.stub(ctrl, 'create');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        await request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
+      });
+
+      it('should return an error if package lookup fails', async () => {
+        const errMessage = 'Model does not exist';
+        const stub = sinon.stub(app.db.models.Package, 'findOne');
+        stub.callsFake((data, callback) => {
+          callback(errMessage);
+        });
+
+        await request(app.express)
+          .post(routePackages)
+          .set('Authorization', token)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
+      });
+
+      it('should fail if no user is provided', async () => {
+        await request(app.express)
+          .post(routePackages)
+          .send({
+            name: 'asdf',
+            versions: [{
+              name: '1.0.0',
+              archive: 'asdf',
+              description: 'My description',
+            }],
+          })
+          .expect('Content-Type', /json/)
+          .expect(401)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body.message).to.eq('Authentication failed');
           });
       });
     });
@@ -511,6 +589,28 @@ describe('CtrlPackage', () => {
             done();
           });
       });
+
+      it('should return an error if get fails', async () => {
+        const errMessage = 'Get failed lookup';
+        const stub = sinon.stub(ctrl, 'get');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        const packId = 'fdsa';
+        await request(app.express)
+          .get(`${routePackages}/${packId}`)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((response) => {
+            expect(response).to.be.ok;
+            expect(response.body).to.be.ok;
+            expect(response.body).to.contain(errMessage);
+            stub.restore();
+          });
+      });
     });
 
     describe('destroy', () => {
@@ -630,6 +730,28 @@ describe('CtrlPackage', () => {
           .then((res) => {
             expect(res).to.be.ok;
           });
+      });
+
+      it('should catch a destroy error', async () => {
+        const errMessage = 'Destroy failed';
+        const stub = sinon.stub(ctrl, 'destroy');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMessage);
+          });
+        });
+
+        await request(app.express)
+          .del(`${routePackages}/${pack.name}`)
+          .set('Authorization', token)
+          .expect('Content-Type', /json/)
+          .expect(400)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.eq(errMessage);
+          });
+
+        stub.restore();
       });
 
       it('should return an error message if the package cannot be found', async () => {
@@ -889,6 +1011,27 @@ describe('CtrlPackage', () => {
             expect(r.version).eq(pack2.versions[1].name);
             expect(r.date).to.be.ok;
           });
+      });
+
+      it('should return an empty array if search is empty', async () => {
+        const stub = sinon.stub(ctrl, 'search');
+        stub.callsFake(() => {
+          return new Promise((resolve) => {
+            resolve(undefined);
+          });
+        });
+
+        await request(app.express)
+          .get(`${routeSearch}/unity-helpers`)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            expect(res).to.be.ok;
+            expect(res.body).to.be.ok;
+            expect(res.body.length).to.eq(0);
+          });
+
+        stub.restore();
       });
 
       it('should return an empty array if the search fails', async () => {

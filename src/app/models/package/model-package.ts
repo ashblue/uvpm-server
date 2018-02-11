@@ -42,6 +42,7 @@ export class ModelPackageSchema extends ModelBase {
                 $in: packageIds,
               },
             }, (err, docs: [IModelPackageVersion]) => {
+              // istanbul ignore if
               if (err) {
                 console.error(err);
                 success(false);
@@ -74,6 +75,7 @@ export class ModelPackageSchema extends ModelBase {
     this.schema.pre('remove', function (this: IModelPackage, next) {
       const versionIds = this.versions
         .filter((v) => {
+          // istanbul ignore next
           return v !== undefined || v !== null;
         })
         .map((v) => {
@@ -84,6 +86,7 @@ export class ModelPackageSchema extends ModelBase {
       modelVersion.remove({
         _id: { $in: versionIds },
       }, (err) => {
+        // istanbul ignore if
         if (err) {
           console.error(err);
         }

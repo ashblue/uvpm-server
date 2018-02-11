@@ -13,6 +13,7 @@ import request = require('supertest');
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
 import { userHelpers } from '../../../helpers/user-helpers';
 import { existsSync } from 'fs';
+import * as sinon from 'sinon';
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -143,6 +144,13 @@ describe('CtrlPackageVersion', () => {
         expect(cleaned.name).eq(version.name);
         expect(cleaned.archive).eq(version.archive);
         expect(cleaned.description).to.not.be.ok;
+      });
+
+      it('should return empty if argument is null', () => {
+        const v: any = null;
+        const result = ctrlVersion.sanitize(v);
+
+        expect(v).to.eq(result);
       });
     });
 
@@ -710,6 +718,28 @@ describe('CtrlPackageVersion', () => {
         expect(packUpdate).to.be.ok;
         expect(packUpdate.versions.length).to.eq(1);
         expect(packUpdate.versions[0].id).to.eq(pack.versions[0].id);
+      });
+
+      it('should catch the error if finding the package fails', async () => {
+        const errMsg = 'Failed to find package';
+        const stub = sinon.stub(app.db.models.Package, 'findOne');
+        stub.callsFake(() => {
+          return new Promise((resolve, reject) => {
+            reject(errMsg);
+          });
+        });
+
+        let err: string|null = null;
+        try {
+          await ctrlVersion.destroy('asdf', 'fdaa');
+        } catch (e) {
+          err = e;
+        }
+
+        expect(err).to.be.ok;
+        expect(err).to.eq(errMsg);
+
+        stub.restore();
       });
 
       it('should fail if the package does not exist', async () => {

@@ -103,6 +103,7 @@ export class CtrlPackageVersion {
           },
         ])
         .exec((err, res: IModelPackage) => {
+          // istanbul ignore if
           if (err) {
             reject(err);
             return;
@@ -180,6 +181,7 @@ export class CtrlPackageVersion {
           this.db.models.Package.findOne({
             name: packageName,
           }, (err, res) => {
+            // istanbul ignore if
             if (err) {
               callback(err, undefined);
               return;
@@ -201,6 +203,7 @@ export class CtrlPackageVersion {
               return;
             }
 
+            // istanbul ignore if
             if (!res) {
               callback(`Package version details are invalid`, undefined);
               return;
@@ -230,6 +233,7 @@ export class CtrlPackageVersion {
 
         if (version) {
           version.remove((versionRemoveErr) => {
+            // istanbul ignore if
             if (versionRemoveErr) {
               console.error(versionRemoveErr);
             }
@@ -254,6 +258,7 @@ export class CtrlPackageVersion {
           .findOne({ name: idPackage })
           .populate('author')
           .exec((errPack, pack) => {
+            // istanbul ignore if
             if (errPack) {
               callback(errPack);
               return;
@@ -278,7 +283,7 @@ export class CtrlPackageVersion {
             res.json(version);
             callback(undefined, undefined);
           })
-          .catch((err) => {
+          .catch(/* istanbul ignore next */ (err) => {
             callback(err);
           });
       },
@@ -310,6 +315,7 @@ export class CtrlPackageVersion {
     const versionName: string = req.params.idVersion;
     const user = req.user;
 
+    // istanbul ignore if
     if (!user) {
       res.status(401)
         .json({ message: 'Authentication failed' });

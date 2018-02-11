@@ -1,5 +1,8 @@
 # uv-package-manager
 
+[![Build Status](https://travis-ci.org/ashblue/uvpm-server.svg?branch=master)](https://travis-ci.org/ashblue/uvpm-server)
+[![codecov](https://codecov.io/gh/ashblue/uvpm-server/branch/master/graph/badge.svg)](https://codecov.io/gh/ashblue/uvpm-server)
+
 A package manager for Unity3D. The back-end server portion of the software.
 
 # Quickstart
