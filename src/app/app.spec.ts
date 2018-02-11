@@ -4,6 +4,7 @@ import * as process from 'process';
 import * as chai from 'chai';
 import { appConfig } from './helpers/app-config';
 import * as fs from 'fs';
+import * as sinon from 'sinon';
 
 const request = require('request');
 const expect = chai.expect;
@@ -43,6 +44,13 @@ describe('App', () => {
         expect(app.db.url).to.equal(appConfig.DB_DEFAULT_URL);
         app.db.closeConnection(done);
       });
+    });
+  });
+
+  it('should trigger logs', (done) => {
+    app = new App(true);
+    app.db.connection.once('connected', () => {
+      app.db.closeConnection(done);
     });
   });
 
@@ -99,11 +107,26 @@ describe('App', () => {
       assert.notEqual(app.express, undefined);
     });
 
-    it('should set the port on creation', (done) => {
-      app.createServer(3000, () => {
-        assert.equal(app.port, 3000);
-        app.server.close();
-        done();
+    describe('createServer', () => {
+      it('should set the port on creation', (done) => {
+        app.createServer(3000, () => {
+          assert.equal(app.port, 3000);
+          app.server.close(done);
+        });
+      });
+
+      it('should return an error if listening fails', (done) => {
+        const stub = sinon.stub(app.express, 'listen');
+        stub.callsFake((port, callback) => {
+          callback('Failed to load');
+        });
+
+        app.createServer(3000, (err) => {
+          expect(err).to.eq('Failed to load');
+          stub.restore();
+          done();
+        });
+
       });
     });
   });

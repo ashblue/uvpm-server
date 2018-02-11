@@ -37,6 +37,7 @@ export class App {
         console.error(err);
       }
 
+      // istanbul ignore else
       if (done) {
         done(err);
       }
@@ -54,6 +55,7 @@ export class App {
     this.express.use(express.static(appConfig.PUBLIC_FOLDER));
   }
 
+  // istanbul ignore next
   private logRequest (req: any, res: Express.Response, next: any) {
     console.log('Request', req.originalUrl, req.body);
     next();
