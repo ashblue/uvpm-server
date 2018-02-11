@@ -1,5 +1,5 @@
 {
-  "name": "uv-package-manager",
+  "name": "uvpm-server",
   "version": "1.0.0",
   "description": "A package manager for Unity3D. The back-end server portion of the software.",
   "main": "index.js",
