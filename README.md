@@ -29,6 +29,12 @@ few extra steps.
 * Go through the below section to start the databases
 * When complete run `npm run start`
 
+### NOTE: Commit and Push commands 
+
+You must have the dev Docker compose container running to make commits and check-ins 
+since tests are automatically run with pre hooks. If Docker is not running the commit and
+push hooks will hang due to slow server responses on tests.
+
 ### Running the database
 
 Instead of running MongoDB and Elastic Search separately, you can run both with a simple
