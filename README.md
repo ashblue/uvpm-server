@@ -39,11 +39,21 @@ Docker command.
   * Run `docker-compose -f docker-compose.dev.yml up -d` if you don't want terminal logging
 * When done run `docker-compose -f docker-compose.dev.yml down` to properly shut down the database
 
+#### Cleaning the database
+
+You can also do a clean run of Docker without any data. Be warned though, this will delete ALL of your
+database data for any Docker application (use with care).
+
+```bash
+docker system prune
+docker volume prune
+```
+
 # Supported environmental variables
 
-* NODE_ENV: Generall to run inproduction mode `NODE_ENV=production`
+* NODE_ENV: For running Node in production mode `NODE_ENV=production`
 * TEST: `true` or `false` to set the test mode
-* DB_URL: Set the current database URL for MongoDB to connect to
+* DB_URL: Set the current database URL for MongoDB to connect to. For external database connections
 * JWT_SECRET: Set your JWT secret key
 
 # Commands
@@ -51,8 +61,12 @@ Docker command.
 ## How to create a user
 
 ```bash
-# Optional if you haven't built out the project yet
-npm run build
+# If you are running a Docker server
+# Turn on execute command mode in the docker box
+docker exec -it uvpm bash
+
+# If you haven't built out the project yet
+# npm run build
 
 npm run create-user
 ```
