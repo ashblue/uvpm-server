@@ -29,10 +29,12 @@ few extra steps.
 * Go through the below section to start the databases
 * When complete run `npm run start`
 
-### NOTE: Commit and Push commands 
+### IMPORTANT NOTE: Git commit and push pre hooks 
 
-You must have the dev Docker compose container running to make commits and check-ins 
-since tests are automatically run with pre hooks. If Docker is not running the commit and
+Git **commit** runs the linter and build automatically.
+
+For git **push** must have the dev Docker compose container running to 
+since tests are automatically run with pre hooks. If Docker is not running the
 push hooks will hang due to slow server responses on tests.
 
 ### Running the database
