@@ -12,6 +12,8 @@ class AppConfig {
   public DB_DEFAULT_URL = 'mongodb://localhost/uv-package-manager';
   public DB_TEST_URL = 'mongodb://localhost/uv-package-manager-test';
 
+  public ES_DEFAULT_URL = 'localhost:9200';
+
   public PUBLIC_FOLDER = 'public';
   public FILE_FOLDER = 'files';
   public FILE_FOLDER_TEST = 'tmp-files';

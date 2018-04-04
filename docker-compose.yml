@@ -17,6 +17,7 @@ services:
       - elasticsearch2
     environment:
       - DB_URL=mongodb://mongodb:27017/uvpm
+      - ES_URL=elasticsearch:9200
     networks:
       - server
 
