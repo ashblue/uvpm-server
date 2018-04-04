@@ -24,7 +24,12 @@ export class ModelCollection {
     this.User = db.connection.model(ModelCollection.USER_ID, new ModelUserSchema().schema);
 
     const schemaPackage = new ModelPackageSchema(db.connection).schema;
-    schemaPackage.plugin(mongoosastic);
+    schemaPackage.plugin(mongoosastic, {
+      hosts: [
+        'localhost:9200',
+        'elasticsearch:9200', // Fix for Docker container Elastic Search internal port
+      ],
+    });
     this.Package = db.connection.model(ModelCollection.PACKAGE_ID, schemaPackage) as IEsModel<IModelPackage, IEsPackageHit>;
 
     this.PackageVersion = db.connection.model(ModelCollection.PACKAGE_VERSION_ID, new ModelPackageVersionSchema().schema);
