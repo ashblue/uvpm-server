@@ -39,13 +39,6 @@ class AppConfig {
     return process.env.TEST === 'true';
   }
 
-  /**
-   * Check if this is the production environment
-   */
-  public isEnvProdution () {
-    return process.env.NODE_ENV === 'production';
-  }
-
   public get fileFolder () {
     if (this.isEnvTest()) {
       return `${this.FILE_FOLDER_TEST}`;
