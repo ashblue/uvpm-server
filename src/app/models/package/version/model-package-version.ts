@@ -70,7 +70,7 @@ export class ModelPackageVersionSchema extends ModelBase {
     // Only hijack local files
     // istanbul ignore else
     if (!doc.archive.startsWith('http')) {
-      ret.archive = `${appConfig.getRootUrl()}/${doc.archive}`
+      ret.archive = `${doc.archive}`
         .replace('public/', '');
     }
 

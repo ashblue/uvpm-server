@@ -18,11 +18,7 @@ class AppConfig {
   public FILE_FOLDER = 'files';
   public FILE_FOLDER_TEST = 'tmp-files';
 
-  // @TODO Strip all references to root URL
-  public ROOT_URL = 'http://localhost:3000';
   public ROOT_URL_TEST = 'http://localhost:3000';
-
-  public ELASTIC_SEARCH_URL = 'http://localhost:9200';
 
   /**
    * Dynamically retrieve the current database URL based on the environment
@@ -56,15 +52,6 @@ class AppConfig {
     }
 
     return `${this.FILE_FOLDER}`;
-  }
-
-  public getRootUrl () {
-    // istanbul ignore if
-    if (this.isEnvProdution()) {
-      return this.ROOT_URL;
-    }
-
-    return this.ROOT_URL_TEST;
   }
 }
 
