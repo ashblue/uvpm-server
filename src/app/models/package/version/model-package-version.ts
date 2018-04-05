@@ -91,7 +91,7 @@ export class ModelPackageVersionSchema extends ModelBase {
 
     // istanbul ignore next
     try {
-      fileDecode = Buffer.from(fileString, 'base64');
+      fileDecode = Buffer.from(fileString);
     } catch (e) {
       console.error(e);
       return fileString;
@@ -100,6 +100,7 @@ export class ModelPackageVersionSchema extends ModelBase {
     // istanbul ignore if
     if (fileDecode.byteLength > fileHelper.maxFileSize()) {
       // File size too large, pass back to validator to detect proper failure message
+      console.error(`File size too large ${fileDecode.byteLength}`);
       return fileString;
     }
 
@@ -119,8 +120,8 @@ export class ModelPackageVersionSchema extends ModelBase {
       fs.mkdirSync(writePath);
     }
 
-    const filePath = `${writePath}/${uuidv4()}`;
-    fs.writeFileSync(filePath, fileDecode);
+    const filePath = `${writePath}/${uuidv4()}.tar`;
+    fs.writeFileSync(filePath, fileString);
 
     return filePath;
   }
