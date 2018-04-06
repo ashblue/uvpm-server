@@ -142,7 +142,7 @@ describe('ModelPackageVersionSchema', () => {
         const archive = 'Hello World';
         const data: IPackageVersionData = {
           name: '0.0.0',
-          archive: new Buffer(archive).toString(),
+          archive: new Buffer(archive).toString('base64'),
           description: 'my desc',
         };
 

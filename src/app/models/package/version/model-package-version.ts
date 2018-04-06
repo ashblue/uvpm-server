@@ -121,7 +121,7 @@ export class ModelPackageVersionSchema extends ModelBase {
     }
 
     const filePath = `${writePath}/${uuidv4()}.tar`;
-    fs.writeFileSync(filePath, fileString);
+    fs.writeFileSync(filePath, fileString, 'base64');
 
     return filePath;
   }
