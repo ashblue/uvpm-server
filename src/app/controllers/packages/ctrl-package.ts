@@ -175,6 +175,15 @@ export class CtrlPackage {
 
           newPack.save((err, result) => {
             savedPack = result;
+
+            // istanbul ignore next: Helps identify production Elastic Search issues
+            newPack.on('es-indexed', (errEs) => {
+              if (errEs) {
+                console.error('es-indexed error:');
+                console.error(errEs);
+              }
+            });
+
             callback(err);
           });
         },

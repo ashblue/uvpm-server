@@ -10,6 +10,7 @@ import { IEsModel } from '../../interfaces/elastic-search/i-es-model';
 import { IEsPackageHit } from '../../models/package/i-es-package-hit';
 
 import mongoosastic = require('mongoosastic');
+import { appConfig } from '../../helpers/app-config';
 
 export class ModelCollection {
   public static readonly USER_ID = 'user';
@@ -20,11 +21,18 @@ export class ModelCollection {
   public readonly Package: IEsModel<IModelPackage, IEsPackageHit>;
   public readonly PackageVersion: mongoose.Model<IModelPackageVersion>;
 
+  // istanbul ignore next
+  private get elasticHost () {
+    return process.env.ES_URL || appConfig.ES_DEFAULT_URL;
+  }
+
   constructor (db: Database) {
     this.User = db.connection.model(ModelCollection.USER_ID, new ModelUserSchema().schema);
 
     const schemaPackage = new ModelPackageSchema(db.connection).schema;
-    schemaPackage.plugin(mongoosastic);
+    schemaPackage.plugin(mongoosastic, {
+      hosts: [this.elasticHost],
+    });
     this.Package = db.connection.model(ModelCollection.PACKAGE_ID, schemaPackage) as IEsModel<IModelPackage, IEsPackageHit>;
 
     this.PackageVersion = db.connection.model(ModelCollection.PACKAGE_VERSION_ID, new ModelPackageVersionSchema().schema);

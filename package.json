@@ -7,7 +7,7 @@
     "start": "npm run watch",
     "watch": "node watch-shim.js && npm-run-all --parallel watch:server watch:build",
     "watch:build": "tsc -w",
-    "watch:server": "nodemon \"./dist/index.js\"",
+    "watch:server": "nodemon dist/index.js --watch dist",
     "serve": "npm run build && node \"./dist/index.js\"",
     "serve:production": "NODE_ENV=production npm run build && node \"./dist/index.js\"",
     "build": "npm run lint && tsc",
