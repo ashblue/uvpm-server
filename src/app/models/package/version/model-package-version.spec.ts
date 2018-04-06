@@ -106,7 +106,7 @@ describe('ModelPackageVersionSchema', () => {
           expect(product).to.be.ok;
 
           const converted: any = product.toJSON();
-          expect(converted.archive).to.contain('http://localhost:3000/tmp-files/');
+          expect(converted.archive).to.contain('tmp-files/');
           expect(converted.archive).to.not.contain('/tmp-files/tmp-files');
           expect(converted.archive).to.not.contain('public');
           expect(converted.archive).to.contain(product.archive.replace('public/', ''));
@@ -155,7 +155,8 @@ describe('ModelPackageVersionSchema', () => {
           app.createServer(appConfig.DEFAULT_PORT, (err2) => {
             expect(err2).to.not.be.ok;
 
-            request(converted.archive, (errReq, response, body) => {
+            const archivePath = `${appConfig.ROOT_URL_TEST}/${converted.archive}`;
+            request(archivePath, (errReq, response, body) => {
               expect(errReq).to.be.not.ok;
               expect(response.statusCode).to.eq(200);
               expect(body).to.contain(archive);

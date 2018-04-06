@@ -16,7 +16,11 @@ services:
       - elasticsearch
       - elasticsearch2
     environment:
-     - DB_URL=mongodb://mongodb:27017/uvpm
+      - DB_URL=mongodb://mongodb:27017/uvpm
+      - ES_URL=elasticsearch:9200
+    networks:
+      - server
+
 
   mongodb:
     image: mongo:3.6.1
@@ -27,6 +31,8 @@ services:
     ports:
         - 27017:27017
     command: mongod
+    networks:
+      - server
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
@@ -45,6 +51,7 @@ services:
       - 9200:9200
     networks:
       - esnet
+      - server
 
   elasticsearch2:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
@@ -73,3 +80,4 @@ volumes:
 
 networks:
   esnet:
+  server:

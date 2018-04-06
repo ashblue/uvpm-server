@@ -12,14 +12,13 @@ class AppConfig {
   public DB_DEFAULT_URL = 'mongodb://localhost/uv-package-manager';
   public DB_TEST_URL = 'mongodb://localhost/uv-package-manager-test';
 
+  public ES_DEFAULT_URL = 'localhost:9200';
+
   public PUBLIC_FOLDER = 'public';
   public FILE_FOLDER = 'files';
   public FILE_FOLDER_TEST = 'tmp-files';
 
-  public ROOT_URL = 'http://uvpm.com';
   public ROOT_URL_TEST = 'http://localhost:3000';
-
-  public ELASTIC_SEARCH_URL = 'http://localhost:9200';
 
   /**
    * Dynamically retrieve the current database URL based on the environment
@@ -40,28 +39,12 @@ class AppConfig {
     return process.env.TEST === 'true';
   }
 
-  /**
-   * Check if this is the production environment
-   */
-  public isEnvProdution () {
-    return process.env.NODE_ENV === 'production';
-  }
-
   public get fileFolder () {
     if (this.isEnvTest()) {
       return `${this.FILE_FOLDER_TEST}`;
     }
 
     return `${this.FILE_FOLDER}`;
-  }
-
-  public getRootUrl () {
-    // istanbul ignore if
-    if (this.isEnvProdution()) {
-      return this.ROOT_URL;
-    }
-
-    return this.ROOT_URL_TEST;
   }
 }
 
