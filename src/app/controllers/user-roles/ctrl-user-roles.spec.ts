@@ -15,6 +15,26 @@ describe('CtrlUserRoles', () => {
   });
 
   describe('hasPermission', () => {
+    it('should throw an error if the role has no match', () => {
+      expect(() => ctrlUserRoles.hasPermission(false as any, PermissionType.CreateUser))
+        .to.throw('Requested role type does not exist false');
+    });
+
+    it('should throw an error if the permission has no match', () => {
+      expect(() => ctrlUserRoles.hasPermission(RoleType.Admin, false as any))
+        .to.throw('Permission does not exist false for role 0');
+    });
+
+    it('should return true for author to create packages', () => {
+      const result = ctrlUserRoles.hasPermission(RoleType.Author, PermissionType.CreatePackage);
+      expect(result).to.be.ok;
+    });
+
+    it('should return true for a subscriber to read packages', () => {
+      const result = ctrlUserRoles.hasPermission(RoleType.Subscriber, PermissionType.GetPackage);
+      expect(result).to.be.ok;
+    });
+
     describe('should return true if an Admin role has', () => {
       it('CreateUser permission', () => {
         const result = ctrlUserRoles.hasPermission(RoleType.Admin, PermissionType.CreateUser);
