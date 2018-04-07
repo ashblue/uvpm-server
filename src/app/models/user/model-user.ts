@@ -1,8 +1,14 @@
 import { ModelBase } from './../base/model-base';
 
 import mongoose = require('mongoose');
+import { RoleType } from '../../controllers/user-roles/roles/e-role-type';
 
 export class ModelUserSchema extends ModelBase {
+  public static ROLE_ADMIN = 'admin';
+  public static ROLE_SUBSCRIBER = 'subscriber';
+  public static ROLE_AUTHOR = 'author';
+  public static ROLE_GUEST = 'guest';
+
   protected get schemaDefinition (): mongoose.SchemaDefinition {
     return {
       name: {
@@ -50,6 +56,11 @@ export class ModelUserSchema extends ModelBase {
           },
         ],
       },
+      role: {
+        type: String,
+        set: this.setRole.bind(this),
+        get: this.getRole.bind(this),
+      },
     };
   }
 
@@ -57,5 +68,37 @@ export class ModelUserSchema extends ModelBase {
     delete ret.password;
 
     return super.transform(doc, ret);
+  }
+
+  private getRole (roleString: string): RoleType {
+    return this.stringToRole(roleString);
+  }
+
+  private setRole (roleString: string): string {
+    const role = this.stringToRole(roleString);
+
+    return this.roleToString(role);
+  }
+
+  private stringToRole (role: string): RoleType {
+    switch (role) {
+      case ModelUserSchema.ROLE_ADMIN:
+        return RoleType.Admin;
+      case ModelUserSchema.ROLE_AUTHOR:
+        return RoleType.Author;
+    }
+
+    return RoleType.Subscriber;
+  }
+
+  private roleToString (role: RoleType): string {
+    switch (role) {
+      case RoleType.Admin:
+        return ModelUserSchema.ROLE_ADMIN;
+      case RoleType.Author:
+        return ModelUserSchema.ROLE_AUTHOR;
+    }
+
+    return ModelUserSchema.ROLE_SUBSCRIBER;
   }
 }
