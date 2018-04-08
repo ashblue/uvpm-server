@@ -694,6 +694,10 @@ describe('CtrlPackageVersion', () => {
 
         expect(versions.length).to.eq(1);
       });
+
+      xit('should only allow package creators to add a new version');
+
+      xit('should allow admins to add a package to any version');
     });
 
     describe('destroy', () => {

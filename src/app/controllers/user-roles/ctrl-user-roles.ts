@@ -7,7 +7,7 @@ import { RoleType } from './roles/e-role-type';
 import { PermissionType } from './roles/e-permission-type';
 
 export class CtrlUserRoles {
-  private roles: {[key: string]: IUserPermissions} = {
+  public static roles: {[key: string]: IUserPermissions} = {
     admin: roleAdmin,
     author: roleAuthor,
     subscriber: roleSubscriber,
@@ -35,13 +35,13 @@ export class CtrlUserRoles {
   private getRolePermissions (role: RoleType): IUserPermissions {
     switch (role) {
       case RoleType.Admin:
-        return this.roles.admin;
+        return CtrlUserRoles.roles.admin;
       case RoleType.Author:
-        return this.roles.author;
+        return CtrlUserRoles.roles.author;
       case RoleType.Subscriber:
-        return this.roles.subscriber;
+        return CtrlUserRoles.roles.subscriber;
       case RoleType.Guest:
-        return this.roles.guest;
+        return CtrlUserRoles.roles.guest;
       default:
         throw new Error(`Requested role type does not exist ${role}`);
     }
