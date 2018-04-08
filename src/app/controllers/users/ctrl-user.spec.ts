@@ -10,10 +10,12 @@ import bodyParser = require('body-parser');
 import * as chai from 'chai';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IUserData } from '../../models/user/i-user-data';
+import { UserHelpers } from '../../helpers/user-helpers';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
   let db: Database;
+  let adminToken: string;
 
   beforeEach((done) => {
     db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
@@ -60,14 +62,19 @@ describe('CtrlUser', () => {
       });
 
       app.post('/users/login', (req, res) => {
-        ctrl.login(req, res);
+        ctrl.loginHttp(req, res);
       });
+    });
+
+    beforeEach(async () => {
+      adminToken = await UserHelpers.getToken(ctrl, db.models.User, 'admin');
     });
 
     describe('httpRegister', () => {
       it('should register a user', (done) => {
         request(app)
           .post('/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .send({
             name: 'Lorem Ipsum',
             email: 'asdf@asdf.com',
@@ -92,6 +99,7 @@ describe('CtrlUser', () => {
       it('should return an error if registration fails', (done) => {
         request(app)
           .post('/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .send({})
           .expect('Content-Type', /json/)
           .expect(400)

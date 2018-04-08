@@ -11,7 +11,7 @@ import { App } from '../../../app';
 const expect = chai.expect;
 import request = require('supertest');
 import { IModelPackageVersion } from '../../../models/package/version/i-model-package-version';
-import { userHelpers } from '../../../helpers/user-helpers';
+import { UserHelpers, userHelpers } from '../../../helpers/user-helpers';
 import { existsSync } from 'fs';
 import * as sinon from 'sinon';
 
@@ -52,6 +52,11 @@ describe('CtrlPackageVersion', () => {
     let fileBase64: string;
     let user: IModelUser;
     let token: string;
+    let adminToken: string;
+
+    beforeEach(async () => {
+      adminToken = await UserHelpers.getTokenFromApp(app, 'admin');
+    });
 
     beforeEach((done) => {
       ctrlPackage = new CtrlPackage(db);
@@ -74,6 +79,7 @@ describe('CtrlPackageVersion', () => {
 
           request(app.express)
             .post('/api/v1/users')
+            .set('Authorization', `Bearer ${adminToken}`)
             .send(userDetails)
             .expect(200)
             .end((err, res) => {

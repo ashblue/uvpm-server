@@ -14,7 +14,7 @@ export class CtrlUserRoles {
     guest: roleGuest,
   };
 
-  public hasPermission (role: RoleType, permission: PermissionType) {
+  public hasPermission (role: RoleType, permission: PermissionType): boolean {
     const rolePermissions = this.getRolePermissions(role);
 
     if (permission === PermissionType.CreateUser) {

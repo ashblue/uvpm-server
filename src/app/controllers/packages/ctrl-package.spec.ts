@@ -9,7 +9,7 @@ import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import * as fs from 'fs';
-import { userHelpers } from '../../helpers/user-helpers';
+import { UserHelpers, userHelpers } from '../../helpers/user-helpers';
 import { esHelpers } from '../../helpers/es-helpers';
 import * as sinon from 'sinon';
 
@@ -17,6 +17,7 @@ const expect = chai.expect;
 
 describe('CtrlPackage', () => {
   let app: App;
+  let adminToken: string;
 
   beforeEach((done) => {
     app = new App();
@@ -25,6 +26,10 @@ describe('CtrlPackage', () => {
         done();
       });
     });
+  });
+
+  beforeEach(async () => {
+    adminToken = await UserHelpers.getToken(app.routes.v1.users.ctrlUser, app.db.models.User, 'admin');
   });
 
   afterEach((done) => {
@@ -92,6 +97,7 @@ describe('CtrlPackage', () => {
         (callback) => {
           request(app.express)
             .post('/api/v1/users')
+            .set('Authorization', `Bearer ${adminToken}`)
             .send(userDetails)
             .expect(200)
             .end((err, res) => {

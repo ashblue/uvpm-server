@@ -8,6 +8,7 @@ import { Database } from '../databases/database';
 import { IExpressRequest } from '../../interfaces/i-express-request';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IUserData } from '../../models/user/i-user-data';
+import { IUserLogin } from '../../models/user/i-user-login';
 
 export class CtrlUser {
   constructor (private db: Database) {
@@ -70,34 +71,48 @@ export class CtrlUser {
     });
   }
 
-  public login = (req: express.Request, res: express.Response) => {
+  public loginHttp = async (req: express.Request, res: express.Response) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    const userModel = this.db.models.User;
-    userModel.findOne({ email, password }, (err, user) => {
-      // istanbul ignore if
-      if (err) {
-        res.status(401).json(err);
-        return;
-      }
-
-      if (!user) {
-        res.status(401).json({
-          message: 'Invalid login credentials',
-        });
-        return;
-      }
-
-      const token = jwt.encode({ id: user.id }, userConfig.jwtSecret);
-      res.json({
-        token,
-        user,
+    try {
+      const userLogin = await this.login(email, password);
+      res.json(userLogin);
+    } catch (err) {
+      res.status(401).json({
+        message: err,
       });
+    }
+  }
+
+  public login (email: string, password: string): Promise<IUserLogin> {
+    const userModel = this.db.models.User;
+
+    return new Promise<IUserLogin>(async (resolve, reject) => {
+      try {
+        const user = await userModel.findOne({ email, password });
+        if (!user) {
+          reject('Invalid login credentials');
+          return;
+        }
+
+        const token = this.getUserToken(user.id);
+        resolve({
+          token,
+          user,
+        });
+      } catch (err) {
+        reject(err);
+      }
     });
   }
 
-  public authenticate = (req: express.Request, res: express.Response, next: express.NextFunction, success: () => void) => {
+  public getUserToken (userId: string) {
+    return jwt.encode({ id: userId }, userConfig.jwtSecret);
+  }
+
+  public authenticate = (req: IExpressRequest, res: express.Response, next: express.NextFunction, success: () => void) => {
+  // public authenticate = (req: IExpressRequest, res: express.Response, next: express.NextFunction, success: () => void) => {
     passport.authenticate('jwt', userConfig.jwtSession, (err, user, info) => {
       // istanbul ignore if
       if (err) {
@@ -112,7 +127,7 @@ export class CtrlUser {
           });
       }
 
-      req['user'] = user;
+      req.user = user;
 
       success();
     })(req, res, next);
