@@ -11,6 +11,7 @@ import * as chai from 'chai';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IUserData } from '../../models/user/i-user-data';
 import { UserHelpers } from '../../helpers/user-helpers';
+import { CtrlUserRoles } from '../user-roles/ctrl-user-roles';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
@@ -30,9 +31,9 @@ describe('CtrlUser', () => {
   });
 
   it('should initialize', () => {
-     const ctrl = new CtrlUser(db);
+    const ctrl = new CtrlUser(db, new CtrlUserRoles());
 
-     expect(ctrl).to.be.ok;
+    expect(ctrl).to.be.ok;
   });
 
   describe('when initialized', () => {
@@ -46,7 +47,7 @@ describe('CtrlUser', () => {
     };
 
     beforeEach(() => {
-      ctrl = new CtrlUser(db);
+      ctrl = new CtrlUser(db, new CtrlUserRoles());
       app = express();
       app.use(bodyParser.json());
       app.use(passport.initialize());

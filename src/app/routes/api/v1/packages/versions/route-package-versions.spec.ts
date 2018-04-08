@@ -102,35 +102,37 @@ describe('RoutePackageVersions', () => {
         });
     });
 
-    it('should delete a package at /api/v1/packages/ID/versions/ID', async () => {
-      let ver: IModelPackageVersion = undefined as any;
-      const verData = {
-        name: '1.0.0',
-        archive: 'fdsa',
-      };
+    describe('delete /api/v1/packages/ID/versions/ID', () => {
+      it('should delete a package', async () => {
+        let ver: IModelPackageVersion = undefined as any;
+        const verData = {
+          name: '1.0.0',
+          archive: 'fdsa',
+        };
 
-      await request(app.express)
-        .post(`/api/v1/packages/${pack.name}/versions`)
-        .set('Authorization', user.authToken)
-        .send(verData)
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .then((res) => {
-          ver = res.body;
-          expect(ver).to.be.ok;
-        });
+        await request(app.express)
+          .post(`/api/v1/packages/${pack.name}/versions`)
+          .set('Authorization', user.authToken)
+          .send(verData)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            ver = res.body;
+            expect(ver).to.be.ok;
+          });
 
-      await request(app.express)
-        .delete(`/api/v1/packages/${pack.name}/versions/${ver.name}`)
-        .set('Authorization', user.authToken)
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .then((res) => {
-          const result: { message: string } = res.body;
-          expect(result).to.be.ok;
-          expect(result.message).to.be.ok;
-          expect(result.message).to.contain('Package removed');
-        });
+        await request(app.express)
+          .delete(`/api/v1/packages/${pack.name}/versions/${ver.name}`)
+          .set('Authorization', user.authToken)
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then((res) => {
+            const result: { message: string } = res.body;
+            expect(result).to.be.ok;
+            expect(result.message).to.be.ok;
+            expect(result.message).to.contain('Package removed');
+          });
+      });
     });
   });
 });

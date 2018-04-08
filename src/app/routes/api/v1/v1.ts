@@ -28,8 +28,8 @@ export class RouteV1 {
   }
 
   private setupRouterUsers (app: App) {
-    const ctrlUsers = new CtrlUser(app.db);
-    const users = new RouteUsers(ctrlUsers, app.userRoles);
+    const ctrlUsers = new CtrlUser(app.db, app.userRoles);
+    const users = new RouteUsers(ctrlUsers);
     app.express.use(`${this.prefix}/${routeName}/users`, users.router);
 
     return users;

@@ -776,7 +776,7 @@ describe('CtrlPackage', () => {
           });
       });
 
-      it('should not allow an anonymous user to delete a package', async () => {
+      it('should not allow a guest to delete a package', async () => {
         await request(app.express)
           .del(`${routePackages}/${pack.name}`)
           .expect('Content-Type', /json/)
@@ -804,6 +804,12 @@ describe('CtrlPackage', () => {
             expect(res.body.message).to.eq(`You cannot delete this package`);
           });
       });
+
+      xit('should allow all authenticated users to delete their own packages');
+
+      xit('should not allow authenticated users except admins to delete other people\'s packages');
+
+      xit('should allow admins to delete packages they do not own');
     });
 
     describe('search', () => {

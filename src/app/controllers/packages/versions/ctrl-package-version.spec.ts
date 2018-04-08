@@ -1041,6 +1041,12 @@ describe('CtrlPackageVersion', () => {
         const versionUpdate = await db.models.PackageVersion.findById(version.id);
         expect(versionUpdate).to.be.ok;
       });
+
+      xit('should allow all authenticated users to delete their own package versions');
+
+      xit('should allow admins to delete package versions they do not own');
+
+      xit('should not allow authenticated users except admins to delete other people\'s packages');
     });
   });
 });

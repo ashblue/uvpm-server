@@ -24,13 +24,43 @@ export class UserHelpers {
     return ctrlUser.getUserToken(user.id);
   }
 
-  // @TODO Move to a static method
   /**
    * @param {App} app
    * @param {string} name
    * @param {string} email
    * @param {string} password
    * @returns {IUserLogin}
+   */
+  public static async createUserDetails (app: App, name: string, email: string, password: string): Promise<IUserLogin> {
+    const user = { name, email, password };
+    const adminToken = await UserHelpers.getToken(app.routes.v1.users.ctrlUser, app.db.models.User, 'admin');
+
+    await request(app.express)
+      .post('/api/v1/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    return await request(app.express)
+      .post('/api/v1/users/login')
+      .send(user)
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .then((result) => {
+        const userResult: IUserLogin = result.body;
+        userResult.authToken = `Bearer ${userResult.token}`;
+        return userResult;
+      });
+  }
+
+  /**
+   * @deprecated Use UserHelpers.createUserDetails instead
+   * @param {App} app
+   * @param {string} name
+   * @param {string} email
+   * @param {string} password
+   * @returns {Promise<IUserLogin>}
    */
   public async createUser (app: App, name: string, email: string, password: string): Promise<IUserLogin> {
     const user = { name, email, password };

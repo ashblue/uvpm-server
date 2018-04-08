@@ -6,6 +6,7 @@ import { IModelUser } from '../../app/models/user/i-model-user';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { Inquirer, Questions } from 'inquirer';
+import { CtrlUserRoles } from '../../app/controllers/user-roles/ctrl-user-roles';
 
 /**
  * @TODO Move to a base class to make re-usable
@@ -102,7 +103,7 @@ export class CommandCreateUser {
   private generateUser (user: IUserData): Promise<IModelUser> {
     return new Promise<IModelUser>((resolve, reject) => {
       const db = new Database(appConfig.dbUrl, () => {
-        const ctrlUser = new CtrlUser(db);
+        const ctrlUser = new CtrlUser(db, new CtrlUserRoles());
         ctrlUser.register(user)
           .then((data) => {
             db.closeConnection(() => {
