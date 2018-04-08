@@ -102,6 +102,7 @@ export class CtrlUser {
           user,
         });
       } catch (err) {
+        // istanbul ignore next: Write a test to catch userModel.findOne failure
         reject(err);
       }
     });
