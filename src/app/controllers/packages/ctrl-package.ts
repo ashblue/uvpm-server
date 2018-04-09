@@ -136,7 +136,9 @@ export class CtrlPackage {
               .json(err);
           });
       })
-      .catch((err) => {
+      // @TODO A test should be written for this
+      .catch(/* istanbul ignore next */ (err) => {
+        // istanbul ignore next
         res.status(400)
           .json({ message: `Could not find package ID ${packName}` });
       });
