@@ -19,8 +19,10 @@ export class CtrlUserRoles {
 
     if (permission === PermissionType.CreateUser) {
       return rolePermissions.createUser;
-    } else if (permission === PermissionType.CreatePackage) {
-      return rolePermissions.createPackage;
+    } else if (permission === PermissionType.CreateOwnPackage) {
+      return rolePermissions.createOwnPackage;
+    } else if (permission === PermissionType.CreateOtherPackage) {
+      return rolePermissions.createOtherPackage;
     } else if (permission === PermissionType.DeleteOwnPackages) {
       return rolePermissions.deleteOwnPackages;
     } else if (permission === PermissionType.DeleteOtherPackages) {

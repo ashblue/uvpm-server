@@ -47,22 +47,4 @@ export class UserHelpers {
       token,
     };
   }
-
-  /**
-   * @deprecated Use UserHelpers.createUserDetails instead
-   * @param {App} app
-   * @param {string} name
-   * @param {string} email
-   * @param {string} password
-   * @returns {Promise<IUserLogin>}
-   */
-  public async createUser (app: App, name: string, email: string, password: string): Promise<IUserLogin> {
-    return await UserHelpers.createUserDetails(app, name, email, password);
-  }
 }
-
-/**
- * @deprecated User static equivalents instead
- * @type {UserHelpers}
- */
-export const userHelpers = new UserHelpers();

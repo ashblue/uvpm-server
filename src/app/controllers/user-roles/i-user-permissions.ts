@@ -3,7 +3,10 @@ export interface IUserPermissions {
   createUser: boolean;
 
   // Create a new package
-  createPackage: boolean;
+  createOwnPackage: boolean;
+
+  // Create versions on another users package
+  createOtherPackage: boolean;
 
   // Retrieve a package
   getPackage: boolean;

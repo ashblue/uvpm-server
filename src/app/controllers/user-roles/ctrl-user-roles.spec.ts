@@ -26,7 +26,7 @@ describe('CtrlUserRoles', () => {
     });
 
     it('should return true for author to create packages', () => {
-      const result = ctrlUserRoles.hasPermission(RoleType.Author, PermissionType.CreatePackage);
+      const result = ctrlUserRoles.hasPermission(RoleType.Author, PermissionType.CreateOwnPackage);
       expect(result).to.be.ok;
     });
 
@@ -42,7 +42,7 @@ describe('CtrlUserRoles', () => {
       });
 
       it('CreatePackage permission', () => {
-        const result = ctrlUserRoles.hasPermission(RoleType.Admin, PermissionType.CreatePackage);
+        const result = ctrlUserRoles.hasPermission(RoleType.Admin, PermissionType.CreateOwnPackage);
         expect(result).to.be.ok;
       });
 
@@ -69,7 +69,7 @@ describe('CtrlUserRoles', () => {
       });
 
       it('CreatePackage permission', () => {
-        const result = ctrlUserRoles.hasPermission(RoleType.Guest, PermissionType.CreatePackage);
+        const result = ctrlUserRoles.hasPermission(RoleType.Guest, PermissionType.CreateOwnPackage);
         expect(result).to.be.not.ok;
       });
 

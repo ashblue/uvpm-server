@@ -121,7 +121,7 @@ describe('RoutePackageVersions', () => {
             query.set('Authorization', userTmp.authToken);
           }
 
-          if (role.createPackage) {
+          if (role.createOwnPackage) {
             query.expect(200);
           } else {
             query.expect(401);

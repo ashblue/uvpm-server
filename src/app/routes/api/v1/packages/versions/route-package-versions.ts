@@ -33,7 +33,7 @@ export class RoutePackageVersions {
 
     this.router.post('/:idPackage/versions', this.sanitize, async (req, res, next) => {
       try {
-        req.user = await ctrlUser.authenticateUser(PermissionType.CreatePackage, req, res, next);
+        req.user = await ctrlUser.authenticateUser(PermissionType.CreateOwnPackage, req, res, next);
       } catch (message) {
         res.status(401)
           .json({ message });

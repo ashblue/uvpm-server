@@ -1,6 +1,7 @@
 export enum PermissionType {
   CreateUser,
-  CreatePackage,
+  CreateOwnPackage,
+  CreateOtherPackage,
   GetPackage,
   DeleteOwnPackages,
   DeleteOtherPackages,

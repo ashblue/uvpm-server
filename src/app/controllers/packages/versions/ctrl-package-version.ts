@@ -255,6 +255,12 @@ export class CtrlPackageVersion {
     const data: IPackageVersionData = req.body;
     const user = req.user as IModelUser;
 
+    if (!user || !this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.CreateOwnPackage)) {
+      res.status(401)
+        .json({ message: 'You are not authorized to create packages' });
+      return;
+    }
+
     async.series([
       (callback) => {
         this.db.models.Package
@@ -272,7 +278,8 @@ export class CtrlPackageVersion {
               return;
             }
 
-            if (pack.author.id !== user.id) {
+            if (pack.author.id !== user.id &&
+              !this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.CreateOtherPackage)) {
               callback(`You are not authorized to do that`);
               return;
             }
@@ -291,7 +298,10 @@ export class CtrlPackageVersion {
           });
       },
     ], ((err) => {
-      if (err) {
+      if (err === 'You are not authorized to do that') {
+        res.status(401)
+          .json({ message: err });
+      } else if (err) {
         res.status(400)
           .json({ message: err });
       }
