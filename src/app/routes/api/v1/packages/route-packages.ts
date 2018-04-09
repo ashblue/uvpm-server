@@ -6,7 +6,7 @@ import { PermissionType } from '../../../../controllers/user-roles/roles/e-permi
 import { IExpressRequest } from '../../../../interfaces/i-express-request';
 
 /**
- * @TODO Simply pass through to the http methods with authentication allow them to determine if
+ * @TODO Simply pass through to the http methods with authentication, allow them to determine if
  * a user is required or not. Should not fail immediately if there is no user (logic here is getting too complex)
  */
 export class RoutePackages {
