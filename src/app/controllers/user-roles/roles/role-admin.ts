@@ -4,6 +4,7 @@ export const roleAdmin: IUserPermissions = {
   createUser: true,
   createPackage: true,
   getPackage: true,
-  deletePackage: true,
+  deleteOwnPackages: true,
+  deleteOtherPackages: true,
   searchPackages: true,
 };

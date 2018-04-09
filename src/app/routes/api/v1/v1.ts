@@ -36,7 +36,7 @@ export class RouteV1 {
   }
 
   private setupRoutePackages (app: App) {
-    const ctrlPackages = new CtrlPackage(app.db);
+    const ctrlPackages = new CtrlPackage(app.db, app.userRoles);
     const packages = new RoutePackages(ctrlPackages, this.users.ctrlUser);
     app.express.use(`${this.prefix}/${routeName}/packages`, packages.router);
 

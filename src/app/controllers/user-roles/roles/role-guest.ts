@@ -4,6 +4,7 @@ export const roleGuest: IUserPermissions = {
   createUser: false,
   createPackage: false,
   getPackage: false,
-  deletePackage: false,
+  deleteOwnPackages: false,
+  deleteOtherPackages: false,
   searchPackages: false,
 };

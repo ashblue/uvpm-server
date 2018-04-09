@@ -246,7 +246,7 @@ describe('RoutePackageVersions', () => {
             query.set('Authorization', userTmp.authToken);
           }
 
-          if (role.deletePackage) {
+          if (role.deleteOwnPackages) {
             query.expect(200);
           } else {
             query.expect(401);

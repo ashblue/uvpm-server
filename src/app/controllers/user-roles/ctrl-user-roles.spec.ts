@@ -47,7 +47,7 @@ describe('CtrlUserRoles', () => {
       });
 
       it('DeletePackage permission', () => {
-        const result = ctrlUserRoles.hasPermission(RoleType.Admin, PermissionType.DeletePackage);
+        const result = ctrlUserRoles.hasPermission(RoleType.Admin, PermissionType.DeleteOwnPackages);
         expect(result).to.be.ok;
       });
 
@@ -74,7 +74,7 @@ describe('CtrlUserRoles', () => {
       });
 
       it('DeletePackage permission', () => {
-        const result = ctrlUserRoles.hasPermission(RoleType.Guest, PermissionType.DeletePackage);
+        const result = ctrlUserRoles.hasPermission(RoleType.Guest, PermissionType.DeleteOwnPackages);
         expect(result).to.be.not.ok;
       });
 

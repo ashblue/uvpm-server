@@ -223,19 +223,6 @@ describe('RoutePackages', () => {
           });
       });
 
-      it('should not allow an author to delete a package', async () => {
-        const authorToken = await UserHelpers.getTokenFromApp(app, 'author');
-
-        await request(app.express)
-          .delete(`/api/v1/packages/${packData.name}`)
-          .set('Authorization', `Bearer ${authorToken}`)
-          .expect('Content-Type', /json/)
-          .expect(401)
-          .then((res) => {
-            expect(res).to.be.ok;
-          });
-      });
-
       it('should not allow a subscriber to delete a package', async () => {
         const subscriberToken = await UserHelpers.getTokenFromApp(app, 'subscriber');
 

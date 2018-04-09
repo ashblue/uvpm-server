@@ -4,6 +4,7 @@ export const roleSubscriber: IUserPermissions = {
   createUser: false,
   createPackage: false,
   getPackage: true,
-  deletePackage: false,
+  deleteOwnPackages: false,
+  deleteOtherPackages: false,
   searchPackages: true,
 };

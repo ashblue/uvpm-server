@@ -9,6 +9,9 @@ import { IModelUser } from '../../models/user/i-model-user';
 import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackageVersion } from '../../models/package/version/i-model-package-version';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
+import { CtrlUserRoles } from '../user-roles/ctrl-user-roles';
+import { PermissionType } from '../user-roles/roles/e-permission-type';
+import { RoleType } from '../user-roles/roles/e-role-type';
 
 /**
  * @TODO Decouple from logic in versions
@@ -16,7 +19,7 @@ import { IPackageSearchResult } from '../../models/package/i-package-search-resu
 export class CtrlPackage {
   public versions: CtrlPackageVersion;
 
-  constructor (private db: Database) {
+  constructor (private db: Database, private ctrlUserRoles: CtrlUserRoles) {
     this.versions = new CtrlPackageVersion(this.db);
   }
 
@@ -109,7 +112,7 @@ export class CtrlPackage {
     const packName: string = req.params.idPackage;
 
     // istanbul ignore if
-    if (!user) {
+    if (!user || !this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.DeleteOwnPackages)) {
       res.status(401)
         .json({ message: 'Authentication failed' });
       return;
@@ -117,7 +120,8 @@ export class CtrlPackage {
 
     this.get(packName)
       .then((pack) => {
-        if (pack.author.id !== user.id) {
+        if (!this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.DeleteOtherPackages)
+          && pack.author.id !== user.id) {
           res.status(401)
             .json({ message: 'You cannot delete this package' });
           return;

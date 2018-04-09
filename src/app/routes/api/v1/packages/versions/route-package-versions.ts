@@ -57,7 +57,7 @@ export class RoutePackageVersions {
 
     this.router.delete(`/:idPackage/versions/:idVersion`, async (req: IExpressRequest, res, next) => {
       try {
-        req.user = await ctrlUser.authenticateUser(PermissionType.DeletePackage, req, res, next);
+        req.user = await ctrlUser.authenticateUser(PermissionType.DeleteOwnPackages, req, res, next);
       } catch (message) {
         res.status(401)
           .json({ message });

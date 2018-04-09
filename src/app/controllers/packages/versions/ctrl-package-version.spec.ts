@@ -14,6 +14,7 @@ import { IModelPackageVersion } from '../../../models/package/version/i-model-pa
 import { UserHelpers, userHelpers } from '../../../helpers/user-helpers';
 import { existsSync } from 'fs';
 import * as sinon from 'sinon';
+import { CtrlUserRoles } from '../../user-roles/ctrl-user-roles';
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -59,7 +60,7 @@ describe('CtrlPackageVersion', () => {
     });
 
     beforeEach((done) => {
-      ctrlPackage = new CtrlPackage(db);
+      ctrlPackage = new CtrlPackage(db, new CtrlUserRoles());
       ctrlVersion = ctrlPackage.versions;
       expect(ctrlVersion).to.be.ok;
 

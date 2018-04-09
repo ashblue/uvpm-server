@@ -7,7 +7,7 @@ import { RoleType } from './roles/e-role-type';
 import { PermissionType } from './roles/e-permission-type';
 
 export class CtrlUserRoles {
-  public static roles: {[key: string]: IUserPermissions} = {
+  public static roles = {
     admin: roleAdmin,
     author: roleAuthor,
     subscriber: roleSubscriber,
@@ -21,8 +21,10 @@ export class CtrlUserRoles {
       return rolePermissions.createUser;
     } else if (permission === PermissionType.CreatePackage) {
       return rolePermissions.createPackage;
-    } else if (permission === PermissionType.DeletePackage) {
-      return rolePermissions.deletePackage;
+    } else if (permission === PermissionType.DeleteOwnPackages) {
+      return rolePermissions.deleteOwnPackages;
+    } else if (permission === PermissionType.DeleteOtherPackages) {
+      return rolePermissions.deleteOtherPackages;
     } else if (permission === PermissionType.GetPackage) {
       return rolePermissions.getPackage;
     } else if (permission === PermissionType.SearchPackages) {

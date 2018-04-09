@@ -4,6 +4,7 @@ export const roleAuthor: IUserPermissions = {
   createUser: false,
   createPackage: true,
   getPackage: true,
-  deletePackage: false,
+  deleteOwnPackages: true,
+  deleteOtherPackages: false,
   searchPackages: true,
 };
