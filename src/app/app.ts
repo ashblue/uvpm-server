@@ -6,6 +6,7 @@ import { appConfig } from './helpers/app-config';
 import { RouteApi } from './routes/api/api';
 import passport = require('passport');
 import * as fs from 'fs';
+import { CtrlUserRoles } from './controllers/user-roles/ctrl-user-roles';
 
 export class App {
   public db: Database;
@@ -13,8 +14,11 @@ export class App {
   public port: number;
   public server: http.Server;
   public routes: RouteApi;
+  public userRoles: CtrlUserRoles;
 
   constructor (logs: boolean = false) {
+    this.userRoles = new CtrlUserRoles();
+
     this.express = express();
     this.express.use(bodyParser.json({ limit: '10mb' }));
     this.express.use(passport.initialize());

@@ -8,9 +8,13 @@ import { Database } from '../databases/database';
 import { IExpressRequest } from '../../interfaces/i-express-request';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IUserData } from '../../models/user/i-user-data';
+import { IUserLogin } from '../../models/user/i-user-login';
+import { PermissionType } from '../user-roles/roles/e-permission-type';
+import { CtrlUserRoles } from '../user-roles/ctrl-user-roles';
+import { RoleType } from '../user-roles/roles/e-role-type';
 
 export class CtrlUser {
-  constructor (private db: Database) {
+  constructor (private db: Database, private ctrlUserRoles: CtrlUserRoles) {
     const strategy = new passportJWT.Strategy({
       secretOrKey: userConfig.jwtSecret,
       jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -70,34 +74,77 @@ export class CtrlUser {
     });
   }
 
-  public login = (req: express.Request, res: express.Response) => {
+  public loginHttp = async (req: express.Request, res: express.Response) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    const userModel = this.db.models.User;
-    userModel.findOne({ email, password }, (err, user) => {
-      // istanbul ignore if
-      if (err) {
-        res.status(401).json(err);
-        return;
-      }
-
-      if (!user) {
-        res.status(401).json({
-          message: 'Invalid login credentials',
-        });
-        return;
-      }
-
-      const token = jwt.encode({ id: user.id }, userConfig.jwtSecret);
-      res.json({
-        token,
-        user,
+    try {
+      const userLogin = await this.login(email, password);
+      res.json(userLogin);
+    } catch (err) {
+      res.status(401).json({
+        message: err,
       });
+    }
+  }
+
+  public login (email: string, password: string): Promise<IUserLogin> {
+    const userModel = this.db.models.User;
+
+    return new Promise<IUserLogin>(async (resolve, reject) => {
+      try {
+        const user = await userModel.findOne({ email, password });
+        if (!user) {
+          reject('Invalid login credentials');
+          return;
+        }
+
+        const token = this.getUserToken(user.id);
+        resolve({
+          token,
+          user,
+        });
+      } catch (err) {
+        // istanbul ignore next: Write a test to catch userModel.findOne failure
+        reject(err);
+      }
     });
   }
 
-  public authenticate = (req: express.Request, res: express.Response, next: express.NextFunction, success: () => void) => {
+  public getUserToken (userId: string) {
+    return jwt.encode({ id: userId }, userConfig.jwtSecret);
+  }
+
+  public authenticateUser (requiredPermission: PermissionType, req: IExpressRequest, res: express.Response, next: express.NextFunction): Promise<IModelUser|undefined> {
+    return new Promise<IModelUser|undefined>((resolve, reject) => {
+      passport.authenticate('jwt', userConfig.jwtSession, (err, user) => {
+        // istanbul ignore if
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (!user && !this.ctrlUserRoles.hasPermission(RoleType.Guest, requiredPermission)) {
+          reject('Authentication failed');
+          return;
+        } else if (user && !this.ctrlUserRoles.hasPermission(user.role, requiredPermission)) {
+          reject('You do not have the permission to do that');
+          return;
+        }
+
+        resolve(user);
+      })(req, res, next);
+    });
+  }
+
+  /**
+   * @deprecated Use CtrlUser.authenticateUser instead
+   * @param {IExpressRequest} req
+   * @param {e.Response} res
+   * @param {e.NextFunction} next
+   * @param {() => void} success
+   */
+  public authenticate = (req: IExpressRequest, res: express.Response, next: express.NextFunction, success: () => void) => {
     passport.authenticate('jwt', userConfig.jwtSession, (err, user, info) => {
       // istanbul ignore if
       if (err) {
@@ -112,7 +159,7 @@ export class CtrlUser {
           });
       }
 
-      req['user'] = user;
+      req.user = user;
 
       success();
     })(req, res, next);

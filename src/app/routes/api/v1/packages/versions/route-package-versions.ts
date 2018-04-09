@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { check } from 'express-validator/check';
 import { CtrlPackageVersion } from '../../../../../controllers/packages/versions/ctrl-package-version';
 import { CtrlUser } from '../../../../../controllers/users/ctrl-user';
+import { PermissionType } from '../../../../../controllers/user-roles/roles/e-permission-type';
+import { IExpressRequest } from '../../../../../interfaces/i-express-request';
 
 export class RoutePackageVersions {
   public router = Router();
@@ -29,20 +31,40 @@ export class RoutePackageVersions {
       next();
     });
 
-    this.router.post('/:idPackage/versions', this.sanitize, (req, res, next) => {
-      ctrlUser.authenticate(req, res, next, () => {
-        ctrlVersion.httpAdd(req, res);
-      });
+    this.router.post('/:idPackage/versions', this.sanitize, async (req, res, next) => {
+      try {
+        req.user = await ctrlUser.authenticateUser(PermissionType.CreateOwnPackage, req, res, next);
+      } catch (message) {
+        res.status(401)
+          .json({ message });
+        return;
+      }
+
+      ctrlVersion.httpAdd(req, res);
     });
 
-    this.router.get('/:idPackage/versions/:idVersion', (req, res) => {
+    this.router.get('/:idPackage/versions/:idVersion', async (req: IExpressRequest, res, next) => {
+      try {
+        req.user = await ctrlUser.authenticateUser(PermissionType.GetPackage, req, res, next);
+      } catch (message) {
+        res.status(401)
+          .json({ message });
+        return;
+      }
+
       ctrlVersion.httpGet(req, res);
     });
 
-    this.router.delete(`/:idPackage/versions/:idVersion`, (req, res, next) => {
-      ctrlUser.authenticate(req, res, next, () => {
-        ctrlVersion.httpDestroy(req, res);
-      });
+    this.router.delete(`/:idPackage/versions/:idVersion`, async (req: IExpressRequest, res, next) => {
+      try {
+        req.user = await ctrlUser.authenticateUser(PermissionType.DeleteOwnPackages, req, res, next);
+      } catch (message) {
+        res.status(401)
+          .json({ message });
+        return;
+      }
+
+      ctrlVersion.httpDestroy(req, res);
     });
   }
 }

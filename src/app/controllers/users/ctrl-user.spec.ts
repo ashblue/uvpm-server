@@ -10,10 +10,13 @@ import bodyParser = require('body-parser');
 import * as chai from 'chai';
 import { IModelUser } from '../../models/user/i-model-user';
 import { IUserData } from '../../models/user/i-user-data';
+import { UserHelpers } from '../../helpers/user-helpers';
+import { CtrlUserRoles } from '../user-roles/ctrl-user-roles';
 const expect = chai.expect;
 
 describe('CtrlUser', () => {
   let db: Database;
+  let adminToken: string;
 
   beforeEach((done) => {
     db = new Database(appConfig.DB_TEST_URL, (dbRef) => {
@@ -28,9 +31,9 @@ describe('CtrlUser', () => {
   });
 
   it('should initialize', () => {
-     const ctrl = new CtrlUser(db);
+    const ctrl = new CtrlUser(db, new CtrlUserRoles());
 
-     expect(ctrl).to.be.ok;
+    expect(ctrl).to.be.ok;
   });
 
   describe('when initialized', () => {
@@ -44,7 +47,7 @@ describe('CtrlUser', () => {
     };
 
     beforeEach(() => {
-      ctrl = new CtrlUser(db);
+      ctrl = new CtrlUser(db, new CtrlUserRoles());
       app = express();
       app.use(bodyParser.json());
       app.use(passport.initialize());
@@ -60,14 +63,19 @@ describe('CtrlUser', () => {
       });
 
       app.post('/users/login', (req, res) => {
-        ctrl.login(req, res);
+        ctrl.loginHttp(req, res);
       });
+    });
+
+    beforeEach(async () => {
+      adminToken = await UserHelpers.getToken(ctrl, db.models.User, 'admin');
     });
 
     describe('httpRegister', () => {
       it('should register a user', (done) => {
         request(app)
           .post('/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .send({
             name: 'Lorem Ipsum',
             email: 'asdf@asdf.com',
@@ -92,6 +100,7 @@ describe('CtrlUser', () => {
       it('should return an error if registration fails', (done) => {
         request(app)
           .post('/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .send({})
           .expect('Content-Type', /json/)
           .expect(400)
