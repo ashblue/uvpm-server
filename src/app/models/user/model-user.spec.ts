@@ -3,8 +3,9 @@ import { Database } from '../../controllers/databases/database';
 import { appConfig } from '../../helpers/app-config';
 import { ModelUserSchema } from './model-user';
 import { IModelUser } from './i-model-user';
-
 import * as chai from 'chai';
+import { RoleType } from '../../controllers/user-roles/roles/e-role-type';
+
 chai.should();
 const expect = chai.expect;
 
@@ -222,6 +223,43 @@ describe('ModelBase', () => {
             done();
           });
         });
+      });
+    });
+
+    describe('role', () => {
+      async function createUser (role: string) {
+        const userDetails = Object.assign({
+          name: 'asdf',
+          email: 'asdf@asdf.com',
+          password: validPassword,
+        }, { role });
+        const m = new ModelUser(userDetails);
+
+        return await m.save();
+      }
+
+      it('should allow creating a user with role type via string', async () => {
+        const user = await createUser(ModelUserSchema.ROLE_ADMIN);
+
+        expect(user.role).to.eq(RoleType.Admin);
+      });
+
+      it('should set role subscriber if a malformed string is passed', async () => {
+        const user = await createUser('asdf');
+
+        expect(user.role).to.eq(RoleType.Subscriber);
+      });
+
+      it('should not allow guest as a user type', async () => {
+        const user = await createUser(ModelUserSchema.ROLE_GUEST);
+
+        expect(user.role).to.eq(RoleType.Subscriber);
+      });
+
+      it('should return a default user role of RoleType.Subscriber if no role is set', async () => {
+        const user = await createUser(undefined as any);
+
+        expect(user.role).to.eq(RoleType.Subscriber);
       });
     });
   });

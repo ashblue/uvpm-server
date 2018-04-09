@@ -9,14 +9,18 @@ import { IPackageData } from '../../models/package/i-package-data';
 import { IModelPackage } from '../../models/package/i-model-package';
 import { IPackageSearchResult } from '../../models/package/i-package-search-result';
 import * as fs from 'fs';
-import { userHelpers } from '../../helpers/user-helpers';
+import { UserHelpers } from '../../helpers/user-helpers';
 import { esHelpers } from '../../helpers/es-helpers';
 import * as sinon from 'sinon';
+import { CtrlUserRoles } from '../user-roles/ctrl-user-roles';
+import { IUserPermissions } from '../user-roles/i-user-permissions';
+import uuidv4 = require('uuid/v4');
 
 const expect = chai.expect;
 
 describe('CtrlPackage', () => {
   let app: App;
+  let adminToken: string;
 
   beforeEach((done) => {
     app = new App();
@@ -25,6 +29,10 @@ describe('CtrlPackage', () => {
         done();
       });
     });
+  });
+
+  beforeEach(async () => {
+    adminToken = await UserHelpers.getToken(app.routes.v1.users.ctrlUser, app.db.models.User, 'admin');
   });
 
   afterEach((done) => {
@@ -39,7 +47,7 @@ describe('CtrlPackage', () => {
   });
 
   it('should initialize', () => {
-    const ctrl = new CtrlPackage(app.db);
+    const ctrl = new CtrlPackage(app.db, app.userRoles);
 
     expect(ctrl).to.be.ok;
   });
@@ -54,7 +62,7 @@ describe('CtrlPackage', () => {
     let fileBase64: string;
 
     beforeEach((done) => {
-      ctrl = new CtrlPackage(app.db);
+      ctrl = new CtrlPackage(app.db, app.userRoles);
 
       app.express.post(routePackages, (req, res, next) => {
         app.routes.v1.users.ctrlUser.authenticate(req, res, next, () => {
@@ -92,6 +100,7 @@ describe('CtrlPackage', () => {
         (callback) => {
           request(app.express)
             .post('/api/v1/users')
+            .set('Authorization', `Bearer ${adminToken}`)
             .send(userDetails)
             .expect(200)
             .end((err, res) => {
@@ -721,17 +730,6 @@ describe('CtrlPackage', () => {
         });
       });
 
-      it('should allow the author to remove the package', async () => {
-        await request(app.express)
-          .del(`${routePackages}/${pack.name}`)
-          .set('Authorization', token)
-          .expect('Content-Type', /json/)
-          .expect(200)
-          .then((res) => {
-            expect(res).to.be.ok;
-          });
-      });
-
       it('should catch a destroy error', async () => {
         const errMessage = 'Destroy failed';
         const stub = sinon.stub(ctrl, 'destroy');
@@ -743,7 +741,7 @@ describe('CtrlPackage', () => {
 
         await request(app.express)
           .del(`${routePackages}/${pack.name}`)
-          .set('Authorization', token)
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect('Content-Type', /json/)
           .expect(400)
           .then((res) => {
@@ -759,7 +757,7 @@ describe('CtrlPackage', () => {
 
         await request(app.express)
           .del(`${routePackages}/${fakePackName}`)
-          .set('Authorization', token)
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect('Content-Type', /json/)
           .expect(400)
           .then((res) => {
@@ -770,33 +768,141 @@ describe('CtrlPackage', () => {
           });
       });
 
-      it('should not allow an anonymous user to delete a package', async () => {
-        await request(app.express)
-          .del(`${routePackages}/${pack.name}`)
-          .expect('Content-Type', /json/)
-          .expect(401)
-          .then((res) => {
-            expect(res).to.be.ok;
-            expect(res.body).to.be.ok;
-            expect(res.body.message).to.be.ok;
-            expect(res.body.message).to.eq('Authentication failed');
+      describe('roles based approval', () => {
+        function getValidRoles (filter: (permissions: IUserPermissions) => boolean) {
+          return Object.keys(CtrlUserRoles.roles).filter((role) => {
+            const permissions = CtrlUserRoles.roles[role] as IUserPermissions;
+            return filter(permissions);
           });
-      });
+        }
 
-      it('should not allow a user other than the author to delete a package', async () => {
-        const userAlt = await userHelpers.createUser(app, 'new user', 'dkjfdkjfdkj@adsf.com', '12345asdf');
+        it('should allow all approved roles to delete their own packages', async () => {
+          const userRoles = getValidRoles((p) => p.deleteOwnPackages);
 
-        await request(app.express)
-          .del(`${routePackages}/${pack.name}`)
-          .set('Authorization', `Bearer ${userAlt.token}`)
-          .expect('Content-Type', /json/)
-          .expect(401)
-          .then((res) => {
-            expect(res).to.be.ok;
-            expect(res.body).to.be.ok;
-            expect(res.body.message).to.be.ok;
-            expect(res.body.message).to.eq(`You cannot delete this package`);
-          });
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const packageTmp = new app.db.models.Package({
+              author: userTmp.user,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.0.0', archive: 'adsf' }).save(),
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .delete(`${routePackages}/${packageTmp.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(200);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should not allow unapproved roles to delete their own packages', async () => {
+          const userRoles = getValidRoles((p) => !p.deleteOwnPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const packageTmp = new app.db.models.Package({
+              author: userTmp.user,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save(),
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .delete(`${routePackages}/${packageTmp.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(401);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should allow all approved roles to delete other people\'s packages', async () => {
+          const userRoles = getValidRoles((p) => p.deleteOtherPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const packageTmp = new app.db.models.Package({
+              author: user.id,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save(),
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .delete(`${routePackages}/${packageTmp.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(200);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should not allow unapproved roles to delete packages they do not own', async () => {
+          const userRoles = getValidRoles((p) => !p.deleteOtherPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const packageTmp = new app.db.models.Package({
+              author: user.id,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save(),
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .delete(`${routePackages}/${packageTmp.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(401);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
       });
     });
 

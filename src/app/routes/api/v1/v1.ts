@@ -20,7 +20,7 @@ export class RouteV1 {
   }
 
   private setupRouterPackageVersions (app: App) {
-    const ctrlPackageVersion = new CtrlPackageVersion(app.db);
+    const ctrlPackageVersion = new CtrlPackageVersion(app.db, app.userRoles);
     const packages = new RoutePackageVersions(ctrlPackageVersion, this.users.ctrlUser);
     app.express.use(`${this.prefix}/${routeName}/packages`, packages.router);
 
@@ -28,7 +28,7 @@ export class RouteV1 {
   }
 
   private setupRouterUsers (app: App) {
-    const ctrlUsers = new CtrlUser(app.db);
+    const ctrlUsers = new CtrlUser(app.db, app.userRoles);
     const users = new RouteUsers(ctrlUsers);
     app.express.use(`${this.prefix}/${routeName}/users`, users.router);
 
@@ -36,7 +36,7 @@ export class RouteV1 {
   }
 
   private setupRoutePackages (app: App) {
-    const ctrlPackages = new CtrlPackage(app.db);
+    const ctrlPackages = new CtrlPackage(app.db, app.userRoles);
     const packages = new RoutePackages(ctrlPackages, this.users.ctrlUser);
     app.express.use(`${this.prefix}/${routeName}/packages`, packages.router);
 
