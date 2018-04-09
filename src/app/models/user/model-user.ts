@@ -64,23 +64,7 @@ export class ModelUserSchema extends ModelBase {
     };
   }
 
-  protected transform (doc, ret) {
-    delete ret.password;
-
-    return super.transform(doc, ret);
-  }
-
-  private getRole (roleString: string): RoleType {
-    return this.stringToRole(roleString);
-  }
-
-  private setRole (roleString: string): string {
-    const role = this.stringToRole(roleString);
-
-    return this.roleToString(role);
-  }
-
-  private stringToRole (role: string): RoleType {
+  public static stringToRole (role: string): RoleType {
     switch (role) {
       case ModelUserSchema.ROLE_ADMIN:
         return RoleType.Admin;
@@ -89,6 +73,22 @@ export class ModelUserSchema extends ModelBase {
     }
 
     return RoleType.Subscriber;
+  }
+
+  protected transform (doc, ret) {
+    delete ret.password;
+
+    return super.transform(doc, ret);
+  }
+
+  private getRole (roleString: string): RoleType {
+    return ModelUserSchema.stringToRole(roleString);
+  }
+
+  private setRole (roleString: string): string {
+    const role = ModelUserSchema.stringToRole(roleString);
+
+    return this.roleToString(role);
   }
 
   private roleToString (role: RoleType): string {

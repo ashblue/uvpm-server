@@ -66,8 +66,6 @@ docker volume prune
 
 # Commands
 
-## How to create a user
-
 ```bash
 # If you are running a Docker server
 # Turn on execute command mode in the docker box
@@ -75,11 +73,21 @@ docker exec -it uvpm bash
 
 # If you haven't built out the project yet
 # npm run build
+```
 
+## How to create a user
+
+```bash
 npm run create-user
 ```
 
-## Testing
+## How to set user permissions
+
+```bash
+npm run user-role
+```
+
+# Testing
 
 Run all tests and automatically re-run all tests when a file changes.
 
