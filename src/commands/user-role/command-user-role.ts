@@ -50,8 +50,10 @@ export class CommandUserRole {
         console.error(chalk.red(`User ${answers.email} could not be found`));
       }
 
-      this.exit();
-      resolve();
+      db.closeConnection(() => {
+        this.exit();
+        resolve();
+      });
     });
   }
 
