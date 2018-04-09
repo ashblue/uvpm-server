@@ -7,13 +7,16 @@ import * as express from 'express';
 import { IExpressRequest } from '../../../interfaces/i-express-request';
 import * as async from 'async';
 import { IModelUser } from '../../../models/user/i-model-user';
+import { CtrlUserRoles } from '../../user-roles/ctrl-user-roles';
+import { PermissionType } from '../../user-roles/roles/e-permission-type';
+import { RoleType } from '../../user-roles/roles/e-role-type';
 
 /**
  * @TODO File creation and deletion should be offloaded to an inejctable base class
  *       Allows for Google Cloud or local file handling
  */
 export class CtrlPackageVersion {
-  constructor (private db: Database) {
+  constructor (private db: Database, private ctrlUserRoles: CtrlUserRoles) {
   }
 
   /**
@@ -316,7 +319,7 @@ export class CtrlPackageVersion {
     const user = req.user;
 
     // istanbul ignore if
-    if (!user) {
+    if (!user || !this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.DeleteOwnPackages)) {
       res.status(401)
         .json({ message: 'Authentication failed' });
       return;
@@ -327,7 +330,9 @@ export class CtrlPackageVersion {
         this.db.models.Package.findOne({ name: packName })
           .populate('author')
           .then((pack) => {
-            if (pack && pack.author.id !== user.id) {
+            if (pack
+              && pack.author.id !== user.id
+              && !this.ctrlUserRoles.hasPermission(user.role as RoleType, PermissionType.DeleteOtherPackages)) {
               callback('You are not the package author');
               return;
             }
@@ -341,7 +346,11 @@ export class CtrlPackageVersion {
           .catch((err) => callback(err));
       },
     ], (err, results) => {
-      if (err) {
+      if (err === 'You are not the package author') {
+        res.status(401)
+          .json({ message: err });
+        return;
+      } else if (err) {
         res.status(400)
           .json({ message: err });
         return;

@@ -20,7 +20,7 @@ export class CtrlPackage {
   public versions: CtrlPackageVersion;
 
   constructor (private db: Database, private ctrlUserRoles: CtrlUserRoles) {
-    this.versions = new CtrlPackageVersion(this.db);
+    this.versions = new CtrlPackageVersion(this.db, this.ctrlUserRoles);
   }
 
   public httpCreate = (req: IExpressRequest, res: express.Response) => {

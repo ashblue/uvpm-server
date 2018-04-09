@@ -15,6 +15,8 @@ import { UserHelpers, userHelpers } from '../../../helpers/user-helpers';
 import { existsSync } from 'fs';
 import * as sinon from 'sinon';
 import { CtrlUserRoles } from '../../user-roles/ctrl-user-roles';
+import { IUserPermissions } from '../../user-roles/i-user-permissions';
+import uuidv4 = require('uuid/v4');
 
 describe('CtrlPackageVersion', () => {
   let app: App;
@@ -42,7 +44,7 @@ describe('CtrlPackageVersion', () => {
   });
 
   it('should initialize', () => {
-    const ctrl = new CtrlPackageVersion(db);
+    const ctrl = new CtrlPackageVersion(db, app.userRoles);
 
     expect(ctrl).to.be.ok;
   });
@@ -922,7 +924,7 @@ describe('CtrlPackageVersion', () => {
 
         await request(app.express)
           .del(`/packages/${pack.name}/versions/${version.name}`)
-          .set('Authorization', token)
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect('Content-Type', /json/)
           .expect(200)
           .then((res) => {
@@ -974,7 +976,7 @@ describe('CtrlPackageVersion', () => {
       });
 
       it('should fail if the user is not the package author', async () => {
-        const userAlt = await userHelpers.createUser(app, 'Roger', 'roger@gmail.com', 'asdf12341');
+        const userAlt = await UserHelpers.createUserDetails(app, 'Roger', 'roger@gmail.com', 'asdf12341', 'author');
 
         const pack = await ctrlPackage.create({
           name: 'my-pack',
@@ -997,7 +999,7 @@ describe('CtrlPackageVersion', () => {
           .del(`/packages/${pack.name}/versions/${version.name}`)
           .set('Authorization', `Bearer ${userAlt.token}`)
           .expect('Content-Type', /json/)
-          .expect(400)
+          .expect(401)
           .then((res) => {
             expect(res).to.be.ok;
             expect(res.body).to.be.ok;
@@ -1031,7 +1033,7 @@ describe('CtrlPackageVersion', () => {
 
         await request(app.express)
           .del(`/packages/${pack.name}/versions/${version.name}`)
-          .set('Authorization', token)
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect('Content-Type', /json/)
           .expect(400)
           .then((res) => {
@@ -1047,11 +1049,150 @@ describe('CtrlPackageVersion', () => {
         expect(versionUpdate).to.be.ok;
       });
 
-      xit('should allow all authenticated users to delete their own package versions');
+      describe('role based approval', () => {
+        function getValidRoles (filter: (permissions: IUserPermissions) => boolean) {
+          return Object.keys(CtrlUserRoles.roles).filter((role) => {
+            const permissions = CtrlUserRoles.roles[role] as IUserPermissions;
+            return filter(permissions);
+          });
+        }
 
-      xit('should allow admins to delete package versions they do not own');
+        it('should allow approved users to delete their own package versions', async () => {
+          const userRoles = getValidRoles((p) => p.deleteOwnPackages);
 
-      xit('should not allow authenticated users except admins to delete other people\'s packages');
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const ver = await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save();
+            const packageTmp = new app.db.models.Package({
+              author: userTmp.user,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.0.0', archive: 'adsf' }).save(),
+                ver,
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .del(`/packages/${packageTmp.name}/versions/${ver.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(200);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should not allow unapproved users to delete their own package versions', async () => {
+          const userRoles = getValidRoles((p) => !p.deleteOwnPackages && !p.deleteOtherPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const ver = await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save();
+            const packageTmp = new app.db.models.Package({
+              author: userTmp.user,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.0.0', archive: 'adsf' }).save(),
+                ver,
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .del(`/packages/${packageTmp.name}/versions/${ver.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(401);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should allow approved users to delete package versions they do not own', async () => {
+          const userRoles = getValidRoles((p) => p.deleteOtherPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const ver = await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save();
+            const packageTmp = new app.db.models.Package({
+              author: user.id,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.0.0', archive: 'adsf' }).save(),
+                ver,
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .del(`/packages/${packageTmp.name}/versions/${ver.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(200);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+
+        it('should not allow authenticated users except admins to delete other people\'s packages', async () => {
+          const userRoles = getValidRoles((p) => !p.deleteOtherPackages);
+
+          for (const role of userRoles) {
+            const userTmp = await UserHelpers.createUserDetails(
+              app, role, `${uuidv4()}@asdf.com`, 'asdfasdf1', role);
+
+            const ver = await new app.db.models.PackageVersion({ name: '1.1.0', archive: 'adsf' }).save();
+            const packageTmp = new app.db.models.Package({
+              author: user.id,
+              name: uuidv4(),
+              versions: [
+                await new app.db.models.PackageVersion({ name: '1.0.0', archive: 'adsf' }).save(),
+                ver,
+              ],
+            });
+
+            await packageTmp.save();
+
+            const query = request(app.express)
+              .del(`/packages/${packageTmp.name}/versions/${ver.name}`);
+
+            if (role !== 'guest') {
+              query.set('Authorization', userTmp.authToken);
+            }
+
+            query.expect(401);
+
+            await query.then((res) => {
+              expect(res).to.be.ok;
+            });
+          }
+        });
+      });
     });
   });
 });

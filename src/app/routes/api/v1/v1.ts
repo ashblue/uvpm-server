@@ -20,7 +20,7 @@ export class RouteV1 {
   }
 
   private setupRouterPackageVersions (app: App) {
-    const ctrlPackageVersion = new CtrlPackageVersion(app.db);
+    const ctrlPackageVersion = new CtrlPackageVersion(app.db, app.userRoles);
     const packages = new RoutePackageVersions(ctrlPackageVersion, this.users.ctrlUser);
     app.express.use(`${this.prefix}/${routeName}/packages`, packages.router);
 
