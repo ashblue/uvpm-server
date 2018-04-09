@@ -26,6 +26,7 @@ export class CommandUserRole {
     },
   ];
 
+  // istanbul ignore next: This is not tested since it relies on CLI text
   constructor (program: Command) {
     program.command('user-role')
       .description('Generate a new user')
