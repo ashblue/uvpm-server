@@ -20,7 +20,8 @@ services:
       - ES_URL=elasticsearch:9200
     networks:
       - server
-
+    volumes:
+      - app:/usr/src/app/public/files
 
   mongodb:
     image: mongo:3.6.1
@@ -71,6 +72,7 @@ services:
       - esnet
 
 volumes:
+  app:
   mongodb:
   mongodb_config:
   esdata1:
