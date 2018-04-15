@@ -10,11 +10,9 @@ services:
     links:
       - mongodb
       - elasticsearch
-      - elasticsearch2
     depends_on:
       - mongodb
       - elasticsearch
-      - elasticsearch2
     environment:
       - DB_URL=mongodb://mongodb:27017/uvpm
       - ES_URL=elasticsearch:9200
@@ -54,30 +52,11 @@ services:
       - esnet
       - server
 
-  elasticsearch2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
-    container_name: uvpm-elasticsearch2
-    environment:
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "discovery.zen.ping.unicast.hosts=elasticsearch"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - esdata2:/usr/share/elasticsearch/data
-    networks:
-      - esnet
-
 volumes:
   app:
   mongodb:
   mongodb_config:
   esdata1:
-    driver: local
-  esdata2:
     driver: local
 
 networks:
