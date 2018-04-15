@@ -7,10 +7,6 @@ A package manager for Unity3D. The back-end server portion of the software.
 
 # Quickstart
 
-DOCKER only instructions here
-
-## Docker
-
 Install [Docker](https://www.docker.com) if you haven't already. This is meant for
 previewing the UVPM server and not developing on it.
 
@@ -20,6 +16,9 @@ docker-compose up -d
 # Run this when finished, shuts down the server and services
 docker-compose down
 ```
+
+On your production server you will need about 2GB of memory total to run the package manager.
+Most of this is for Elasticsearch to fuzzy search packages.
 
 ## Development
 
