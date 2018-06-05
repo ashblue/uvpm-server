@@ -3,13 +3,9 @@
 [![Build Status](https://travis-ci.org/ashblue/uvpm-server.svg?branch=master)](https://travis-ci.org/ashblue/uvpm-server)
 [![codecov](https://codecov.io/gh/ashblue/uvpm-server/branch/master/graph/badge.svg)](https://codecov.io/gh/ashblue/uvpm-server)
 
-A package manager for Unity3D. The back-end server portion of the software.
+A package manager for Unity3D. The back-end server portion of the software. Meant to be paired with [UVPM CLI](https://github.com/ashblue/uvpm-cli) to interact with packages.
 
 # Quickstart
-
-DOCKER only instructions here
-
-## Docker
 
 Install [Docker](https://www.docker.com) if you haven't already. This is meant for
 previewing the UVPM server and not developing on it.
@@ -17,9 +13,16 @@ previewing the UVPM server and not developing on it.
 ```bash
 docker-compose up -d
 
-# Run this when finished, shuts down the server and services
-docker-compose down
+# Create a super user for yourself inside the Docker box
+docker exec -it uvpm bash
+npm run create-user
+npm run user-role
+
+# You can now login and publish packages via UVPM CLI
 ```
+
+On your production server you will need about 2GB of memory total to run the package manager.
+Most of this is for Elasticsearch to fuzzy search packages.
 
 ## Development
 
@@ -85,6 +88,12 @@ npm run create-user
 
 ```bash
 npm run user-role
+```
+
+## Change a password
+
+```bash
+npm run set-password
 ```
 
 # Testing
