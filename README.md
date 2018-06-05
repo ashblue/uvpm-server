@@ -90,6 +90,12 @@ npm run create-user
 npm run user-role
 ```
 
+## Change a password
+
+```bash
+npm run set-password
+```
+
 # Testing
 
 Run all tests and automatically re-run all tests when a file changes.

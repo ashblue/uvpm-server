@@ -22,6 +22,7 @@
     "coverage:ci": "npm run coverage:simple && nyc report --reporter=text-lcov > coverage.lcov",
     "cli": "node \"dist/commands\"",
     "create-user": "npm run cli -- create-user",
+    "set-password": "npm run cli -- set-password",
     "user-role": "npm run cli -- user-role",
     "lint": "tslint -c tslint.json \"src/**/*.ts\"",
     "precommit": "npm run build",
