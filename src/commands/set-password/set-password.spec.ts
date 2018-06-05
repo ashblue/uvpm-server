@@ -10,7 +10,7 @@ import { SinonStub } from 'sinon';
 import { IModelUser } from '../../app/models/user/i-model-user';
 import chalk from 'chalk';
 
-describe.only('CommandSetPassword', () => {
+describe('CommandSetPassword', () => {
   let app: App;
   let db: Database;
   let cmd: CommandSetPassword;
